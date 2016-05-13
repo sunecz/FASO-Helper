@@ -45,3 +45,11 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Ignore folders
+.settings/
+bin/
+doc/
+# Ignore files
+.classpath
+.project
