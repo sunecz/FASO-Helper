@@ -394,14 +394,13 @@ public final class FASO {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static final <T extends Server>
-			T getServer(String name, Object... args) {
+	public static final <T extends Server> T getServer(String name, Object... args) {
 		return (T) SERVERS.instance(name, args);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static final <E extends IEventType, T extends Downloader<E>>
-			T getDownloader(String name, Object... args) {
+	public static final <E extends IEventType, T extends Downloader<E>> T getDownloader(
+			String name, Object... args) {
 		return (T) DOWNLOADERS.instance(name, args);
 	}
 	
