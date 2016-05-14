@@ -2,7 +2,7 @@
 FASO-Helper is a simple Java library that helps you with getting information from website http://filmy-serialy-online.tv (or http://faso.tv).
 
 With this library you can easily:
-* get direct video links of an episode
+* get direct video links of an episode or a film
 * download a video file from the gotten video link
 * search the films and serials that are on the website
 
