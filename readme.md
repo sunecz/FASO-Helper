@@ -9,7 +9,7 @@ With this library you can easily:
 FASO-Helper supports getting video links from few servers that can be found on the website:
 
 * HqqTV (http://hqq.tv/)
-* FlashXTV (http://www.flashx.tv/)
+* FlashXTV (http://flashx.tv/)
 * YouWatch (http://youwatch.org/)
 * Exashare (http://exashare.com/)
 * AnyFiles (https://anyfiles.pl/)
