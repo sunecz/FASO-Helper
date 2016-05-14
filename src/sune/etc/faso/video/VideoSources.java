@@ -9,12 +9,12 @@ import sune.etc.faso.util.ArrayItems;
 
 public class VideoSources extends ArrayItems<VideoSource> {
 	
-	public VideoSources(List<VideoSource> list) {
-		super(list.toArray(new VideoSource[list.size()]));
-	}
-	
 	public VideoSources(VideoSource... array) {
 		super(array);
+	}
+	
+	public VideoSources(List<VideoSource> list) {
+		super(list.toArray(new VideoSource[list.size()]));
 	}
 	
 	public static VideoSources forURL(String url) {

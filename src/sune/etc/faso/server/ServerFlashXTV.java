@@ -103,7 +103,7 @@ public class ServerFlashXTV implements Server {
 	
 	@Override
 	public String getAddress() {
-		return "http://www.flashx.tv/";
+		return "http://flashx.tv/";
 	}
 	
 	@Override

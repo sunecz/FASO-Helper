@@ -41,12 +41,15 @@ public final class FASO {
 	public static final DownloaderRegistry DOWNLOADERS;
 	
 	private static final String REGEX_VIDEO_PAGE_LINK;
-	private static final String REGEX_LINK_PAGE_EPS;
 	private static final String REGEX_LINK_EPISODE;
 	
+	private static final String REGEX_LINK_HREF_PAGE;
+	private static final String REGEX_LINK_HREF_ITEM;
+	
 	private static final String REGEX_URL_SERIAL;
+	private static final String REGEX_URL_FILM;
 	private static final String REGEX_URL_EPISODE;
-	private static final String REGEX_URL_PLAY_EPISODE;
+	private static final String REGEX_URL_PLAY_VIDEO;
 	private static final String REGEX_URL_VIDEO_FRAME;
 	
 	static {
@@ -64,13 +67,60 @@ public final class FASO {
 		DOWNLOADERS.register("mp4",  DownloaderMP4.class);
 		DOWNLOADERS.register("m3u8", DownloaderM3U8.class);
 		// Set the important Regular expressions
-		REGEX_VIDEO_PAGE_LINK  = "^/video/(.*?)/watchv=(.*?)/([0-9]+)/(?:\\#c1)?$";
-		REGEX_LINK_PAGE_EPS    = "^/serialy/(.*?)/(?:&strana=(\\d+))?$";
-		REGEX_LINK_EPISODE	   = "^/serialy/(.*?)/(.*?)/(\\d+)/$";
-		REGEX_URL_SERIAL	   = "^https?://(?:www\\.)?filmy-serialy-online\\.tv/serialy/(.*?)/$";
-		REGEX_URL_EPISODE 	   = "^https?://(?:www\\.)?filmy-serialy-online\\.tv/serialy/(.*?)/(.*?)/(\\d+)/$";
-		REGEX_URL_PLAY_EPISODE = "^https?://(?:www\\.)?filmy-serialy-online\\.tv/video/(.*?)/watchv=(.*?)/(\\d+)/(?:#c1)?$";
-		REGEX_URL_VIDEO_FRAME  = "^https?://(?:www\\.)?filmy-serialy-online\\.tv/video_frame\\.php\\?id=(\\d+)$";
+		REGEX_VIDEO_PAGE_LINK = "^/video/(.*?)/watchv=(.*?)/([0-9]+)/(?:\\#c1)?$";
+		REGEX_LINK_EPISODE	  = "^/serialy/(.*?)/(.*?)/(\\d+)/$";
+		REGEX_URL_SERIAL	  = "^https?://(?:www\\.)?filmy-serialy-online\\.tv/serialy/(.*?)/$";
+		REGEX_URL_FILM		  = "^https?://(?:www\\.)?filmy-serialy-online\\.tv/filmy/(.*?)/(.*?)/(\\d+)/$";
+		REGEX_URL_EPISODE 	  = "^https?://(?:www\\.)?filmy-serialy-online\\.tv/serialy/(.*?)/(.*?)/(\\d+)/$";
+		REGEX_URL_PLAY_VIDEO  = "^https?://(?:www\\.)?filmy-serialy-online\\.tv/video/(.*?)/watchv=(.*?)/(\\d+)/(?:#c1)?$";
+		REGEX_URL_VIDEO_FRAME = "^https?://(?:www\\.)?filmy-serialy-online\\.tv/video_frame\\.php\\?id=(\\d+)$";
+		REGEX_LINK_HREF_PAGE  = "^&strana=(\\d+)$";
+		REGEX_LINK_HREF_ITEM  = "^/(.*?)/(.*?)/(.*?)/(\\d+)/$";
+	}
+	
+	static String[] urlPages(String url) {
+		String cuturl 	  = url.substring(SERVER_URL.length());
+		List<String> urls = new LinkedList<>();
+		Document doc 	  = Utils.getDocument(url);
+		Pattern pattern	  = Pattern.compile(REGEX_LINK_HREF_PAGE);
+		int minPage = 1;
+		int maxPage = 1;
+		for(Element link : doc.select("a[href]")) {
+			String href = link.attr("href");
+			if(href.startsWith(cuturl)) {
+				String cuthref	= href.substring(cuturl.length());
+				Matcher matcher = pattern.matcher(cuthref);
+				if(matcher.matches()) {
+					try {
+						int val = Integer.parseInt(matcher.group(1));
+						if(val > maxPage) maxPage = val;
+					} catch(Exception ex) {
+					}
+				}
+			}
+		}
+		for(int i = minPage; i <= maxPage; ++i) {
+			urls.add(url + "&strana=" + i);
+		}
+		return urls.toArray(new String[urls.size()]);
+	}
+	
+	static String[] urlItems(String pageURL, String type, String name) {
+		List<String> eps = new LinkedList<>();
+		Document doc 	 = Utils.getDocument(pageURL);
+		Pattern pattern  = Pattern.compile(REGEX_LINK_HREF_ITEM);
+		for(Element link : doc.select("a[href]")) {
+			String href 	= link.attr("href");
+			Matcher matcher = pattern.matcher(href);
+			if(matcher.matches() &&
+			   matcher.group(1).equals(type) &&
+			   matcher.group(2).equals(name)) {
+				String url = SERVER_URL + href;
+				if(!eps.contains(url))
+					eps.add(url);
+			}
+		}
+		return eps.toArray(new String[eps.size()]);
 	}
 	
 	static String serialURL(String name) {
@@ -78,45 +128,11 @@ public final class FASO {
 	}
 	
 	static String[] serialPages(String name) {
-		List<String> urls = new LinkedList<>();
-		Document doc 	  = Utils.getDocument(serialURL(name));
-		Pattern pattern   = Pattern.compile(REGEX_LINK_PAGE_EPS);
-		int minPage = 1;
-		int maxPage = 1;
-		for(Element link : doc.select("a[href]")) {
-			String href 	= link.attr("href");
-			Matcher matcher = pattern.matcher(href);
-			if(matcher.matches() &&
-			   matcher.group(1).equals(name)) {
-				try {
-					int val = Integer.parseInt(matcher.group(2));
-					if(val > maxPage) maxPage = val;
-				} catch(Exception ex) {
-				}
-			}
-		}
-		String url = serialURL(name);
-		for(int i = minPage; i <= maxPage; ++i) {
-			urls.add(url + "&strana=" + i);
-		}
-		return urls.toArray(new String[urls.size()]);
+		return urlPages(serialURL(name));
 	}
 	
 	static String[] serialPageEpisodes(String pageURL, String serial) {
-		List<String> eps = new LinkedList<>();
-		Document doc 	 = Utils.getDocument(pageURL);
-		Pattern pattern  = Pattern.compile(REGEX_LINK_EPISODE);
-		for(Element link : doc.select("a[href]")) {
-			String href 	= link.attr("href");
-			Matcher matcher = pattern.matcher(href);
-			if(matcher.matches() &&
-			   matcher.group(1).equals(serial)) {
-				String url = SERVER_URL + href;
-				if(!eps.contains(url))
-					eps.add(url);
-			}
-		}
-		return eps.toArray(new String[eps.size()]);
+		return urlItems(pageURL, "serialy", serial);
 	}
 	
 	static String[] serialEpisodesURL(String serial) {
@@ -241,9 +257,10 @@ public final class FASO {
 	}
 	
 	static String videoFrameURL(String url) {
-		Pattern p0 = Pattern.compile(REGEX_URL_EPISODE);
-		Pattern p1 = Pattern.compile(REGEX_URL_PLAY_EPISODE);
-		Pattern p2 = Pattern.compile(REGEX_URL_VIDEO_FRAME);
+		Pattern p0 = Pattern.compile(REGEX_URL_FILM);
+		Pattern p1 = Pattern.compile(REGEX_URL_EPISODE);
+		Pattern p2 = Pattern.compile(REGEX_URL_PLAY_VIDEO);
+		Pattern p3 = Pattern.compile(REGEX_URL_VIDEO_FRAME);
 		Matcher m; int videoID = -1;
 		if((m = p0.matcher(url)) != null &&
 		   (m.matches())) {
@@ -252,6 +269,9 @@ public final class FASO {
 				  (m.matches())) {
 			videoID = Integer.parseInt(m.group(3));
 		} else if((m = p2.matcher(url)) != null &&
+				  (m.matches())) {
+			videoID = Integer.parseInt(m.group(3));
+		} else if((m = p3.matcher(url)) != null &&
 				  (m.matches())) {
 			videoID = Integer.parseInt(m.group(1));
 		}
@@ -281,7 +301,7 @@ public final class FASO {
 			serialEpisodesSingleThread(name);
 	}
 	
-	static final SerialData serialData(String name) {
+	static final AdditionalData serialData(String name) {
 		String[] pages   = serialPages(name);
 		String lastPage  = pages[pages.length-1];
 		int minID 		 = Integer.MAX_VALUE;
@@ -301,15 +321,19 @@ public final class FASO {
 		Elements sstrs = doc.select("strong");
 		// The serial's description is in the fourth strong tag
 		String desc  = sstrs.get(3).text();
-		return new SerialData(desc, thumbURL);
+		return new AdditionalData(desc, thumbURL);
 	}
 	
-	static final class SerialData {
+	static final String filmGenreURL(Genre genre) {
+		return SERVER_URL + "/filmy/" + genre.getName() + "/";
+	}
+	
+	static final class AdditionalData {
 		
 		public final String description;
 		public final String thumbnailURL;
 		
-		public SerialData(String description, String thumbnailURL) {
+		public AdditionalData(String description, String thumbnailURL) {
 			this.description  = description;
 			this.thumbnailURL = thumbnailURL;
 		}
@@ -376,7 +400,7 @@ public final class FASO {
 		return new Serials(serials.toArray(new Serial[serials.size()]));
 	}
 	
-	public static final SerialData getSerialData(Serial serial) {
+	public static final AdditionalData getSerialData(Serial serial) {
 		return serialData(serial.getName());
 	}
 	
@@ -387,6 +411,51 @@ public final class FASO {
 	public static final Serial getSerialFromURL(String url, boolean loadFully,
 			boolean multiThreaded) {
 		return getSerial(serialName(url), loadFully, multiThreaded);
+	}
+	
+	public static final Film getFilm(String url) {
+		Document sdoc = Utils.getDocument(url);
+		// The film's name is in the third strong tag
+		String stitle = sdoc.select("strong").first().text();
+		// The film's description is in an anchor with style attribute
+		String sdesc 	 = "";
+		Elements anchors = sdoc.select("strong + br + a[style]");
+		// The description does not have to exist
+		if(!anchors.isEmpty()) {
+			sdesc = anchors.first().text();
+		}
+		// Get the film thumbnail's url
+		String thumbnail = null;
+		Pattern p_thumb  = Pattern.compile("url\\('?(.*?)'?\\)");
+		for(Element table : sdoc.select("table.rounded")) {
+			String style 	= table.attr("style");
+			Matcher matcher = p_thumb.matcher(style);
+			if(matcher.find()) {
+				thumbnail = matcher.group(1);
+				break;
+			}
+		}
+		return new Film(url, stitle, sdesc, thumbnail);
+	}
+	
+	public static final Films getFilms() {
+		List<Film> films = new LinkedList<>();
+		for(Genre genre : Genre.values()) {
+			for(Film film : getFilms(genre))
+				films.add(film);
+		}
+		return new Films(films);
+	}
+	
+	public static final Films getFilms(Genre genre) {
+		if(genre == Genre.ALL) return getFilms();
+		List<Film> films = new LinkedList<>();
+		for(String page : urlPages(filmGenreURL(genre))) {
+			for(String item : urlItems(page, "filmy", genre.getName())) {
+				films.add(getFilm(item));
+			}
+		}
+		return new Films(films);
 	}
 	
 	public static final VideoSources getVideoSources(String url) {

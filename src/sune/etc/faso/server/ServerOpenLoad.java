@@ -42,6 +42,15 @@ public class ServerOpenLoad implements Server {
 							if(con.startsWith(AAENCODE_PREFIX)) {
 								String value = Utils.aadecode(con).replace("window.", "var ");
 								videoURL 	 = (String) JavaScript.execute(value + "vs;");
+								// The vs variable does not have to be visible for the first time,
+								// it can be wrapped in another variable or it can be a variable
+								// with completely different name.
+								if(videoURL == null && value.startsWith("var ")) {
+									String string  = value.substring(4);
+									int eqsign	   = string.indexOf('=');
+									String varname = string.substring(0, eqsign).trim();
+									videoURL 	   = (String) JavaScript.execute(value + varname);
+								}
 								break;
 							}
 						}

@@ -6,12 +6,12 @@ import sune.etc.faso.util.ArrayItems;
 
 public class Servers extends ArrayItems<Server> {
 	
-	public Servers(List<Server> list) {
-		super(list.toArray(new Server[list.size()]));
-	}
-	
 	public Servers(Server[] array) {
 		super(array);
+	}
+	
+	public Servers(List<Server> list) {
+		super(list.toArray(new Server[list.size()]));
 	}
 	
 	public Server forName(String name) {

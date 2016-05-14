@@ -9,12 +9,12 @@ import sune.etc.faso.video.VideoFormat;
 
 public class Downloaders extends ArrayItems<Downloader<?>> {
 	
-	public Downloaders(List<Downloader<?>> list) {
-		super(list.toArray(new Downloader[list.size()]));
-	}
-	
 	public Downloaders(Downloader<?>... array) {
 		super(array);
+	}
+	
+	public Downloaders(List<Downloader<?>> list) {
+		super(list.toArray(new Downloader[list.size()]));
 	}
 	
 	public static Downloaders forVideoFormat(VideoFormat format) {

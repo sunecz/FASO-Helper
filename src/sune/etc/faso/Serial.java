@@ -1,6 +1,6 @@
 package sune.etc.faso;
 
-import sune.etc.faso.FASO.SerialData;
+import sune.etc.faso.FASO.AdditionalData;
 
 public class Serial {
 	
@@ -40,9 +40,9 @@ public class Serial {
 	}
 	
 	private void loadAdditionalData() {
-		SerialData data = FASO.getSerialData(this);
-		desc 			= data.description;
-		thumbnail 		= data.thumbnailURL;
+		AdditionalData data = FASO.getSerialData(this);
+		desc 				= data.description;
+		thumbnail 			= data.thumbnailURL;
 	}
 	
 	public String getURL() {
