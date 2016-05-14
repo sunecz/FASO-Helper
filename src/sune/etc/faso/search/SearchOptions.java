@@ -1,29 +1,8 @@
 package sune.etc.faso.search;
 
+import sune.etc.faso.Genre;
+
 public class SearchOptions {
-	
-	public static enum Genre {
-		
-		ALL,
-		ACTION,
-		SCIFI,
-		HORROR,
-		COMEDY,
-		FAIRYTALE,
-		ROMANTIC,
-		DRAMA,
-		FANTASY,
-		THRILLER,
-		MUSICAL,
-		CRIMI,
-		FAMILY,
-		MYSTERY,
-		DOCUMENTARY;
-		
-		public int getID() {
-			return ordinal();
-		}
-	}
 	
 	private final String text;
 	private final Genre genre;
@@ -31,6 +10,10 @@ public class SearchOptions {
 	
 	public SearchOptions(String text) {
 		this(text, Genre.ALL, 0);
+	}
+	
+	public SearchOptions(String text, Genre genre) {
+		this(text, genre, 0);
 	}
 	
 	public SearchOptions(String text, Genre genre, int year) {

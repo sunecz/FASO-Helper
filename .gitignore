@@ -50,6 +50,7 @@ Temporary Items
 .settings/
 bin/
 doc/
+versions/
 # Ignore files
 .classpath
 .project
