@@ -26,7 +26,7 @@ public class ServerFlashXTV implements Server {
 	}
 	
 	static String videoPlayLink(String videoID) {
-		return "http://www.flash-x.tv/playthis-" + videoID + ".html";
+		return "http://www.flash-x.tv/playit-" + videoID + ".html";
 	}
 	
 	static String videoJS(Document doc) {
