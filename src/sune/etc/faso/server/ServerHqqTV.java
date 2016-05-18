@@ -49,9 +49,9 @@ public class ServerHqqTV implements Server {
 		URL_EMBED_PLAYER  = "http://hqq.tv/player/embed_player.php";
 		URL_IP_ADDRESS 	  = "http://hqq.tv/player/ip.php";
 		URL_GET_MD5_DATA  = "http://hqq.tv/player/get_md5.php";
-		REGEX_IFRAME_URL  = "^http:\\/\\/hqq\\.tv\\/player\\/embed_player\\.php\\?vid=(.*?)(&(?:.*?))?$";
-		REGEX_FORM_URL 	  = "^http:\\/\\/hqq\\.tv\\/player\\/embed_player\\.php$";
-		REGEX_SCRIPT_HASH = "^http:\\/\\/hqq\\.tv\\/player\\/hash\\.php\\?hash=(.*?)$";
+		REGEX_IFRAME_URL  = "^http://(?:www\\.)?hqq\\.tv/player/embed_player\\.php\\?vid=(.*?)(&(?:.*?))?$";
+		REGEX_FORM_URL 	  = "^http://(?:www\\.)?hqq\\.tv/player/embed_player\\.php$";
+		REGEX_SCRIPT_HASH = "^http://(?:www\\.)?hqq\\.tv/player/hash\\.php\\?hash=(.*?)$";
 	}
 	
 	ServerHqqTV() {
