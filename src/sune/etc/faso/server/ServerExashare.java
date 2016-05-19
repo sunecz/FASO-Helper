@@ -1,6 +1,8 @@
 package sune.etc.faso.server;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,8 +52,9 @@ public class ServerExashare implements Server {
 	}
 	
 	@Override
-	public VideoSource getVideoSource(Document document) {
-		String url = null;
+	public VideoSource[] getVideoSource(Document document) {
+		List<VideoSource> sources = new ArrayList<>();
+		List<String> list 		  = new ArrayList<>();
 		// Test iframes with the correct source url
 		Elements iframes = document.select("iframe[src]");
 		if(iframes.size() > 0) {
@@ -60,27 +63,29 @@ public class ServerExashare implements Server {
 				String src = iframe.attr("src");
 				Matcher matcher = pattern.matcher(src);
 				if(matcher.matches()) {
-					url = src;
-					break;
+					list.add(src);
 				}
 			}
 		}
-		if(url != null) {
-			try {
-				Document iframe = Utils.getDocument(url);
-				Elements frames = iframe.select("iframe[src]");
-				if(frames.size() > 0) {
-					String src 	  = frames.first().attr("src");
-					String html   = Utils.request("GET", src, UserAgent.MOZILLA).result;
-					SSDFCore data = new SSDFCore(playerSetupData(html));
-					String source = data.getArray().getObject("sources.0.file").stringValue();
-					long fileSize = Utils.getFileSizeURL(source);
-					return new VideoSource(this, new URL(source), VideoFormat.MP4, fileSize);
+		if(!list.isEmpty()) {
+			for(String url : list) {
+				try {
+					Document iframe = Utils.getDocument(url);
+					Elements frames = iframe.select("iframe[src]");
+					if(frames.size() > 0) {
+						String src 	   = frames.first().attr("src");
+						String html    = Utils.request("GET", src, UserAgent.MOZILLA).result;
+						SSDFCore data  = new SSDFCore(playerSetupData(html));
+						String source  = data.getArray().getObject("sources.0.file").stringValue();
+						long fileSize  = Utils.getFileSizeURL(source);
+						VideoSource vs = new VideoSource(this, new URL(source), VideoFormat.MP4, fileSize);
+						sources.add(vs);
+					}
+				} catch(Exception ex) {
 				}
-			} catch(Exception ex) {
 			}
 		}
-		return null;
+		return sources.toArray(new VideoSource[sources.size()]);
 	}
 	
 	@Override

@@ -12,6 +12,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import sune.etc.faso.downloader.Downloader;
+import sune.etc.faso.downloader.DownloaderFLV;
 import sune.etc.faso.downloader.DownloaderM3U8;
 import sune.etc.faso.downloader.DownloaderMP4;
 import sune.etc.faso.event.IEventType;
@@ -26,6 +27,7 @@ import sune.etc.faso.server.ServerAnyFiles;
 import sune.etc.faso.server.ServerExashare;
 import sune.etc.faso.server.ServerFlashXTV;
 import sune.etc.faso.server.ServerHqqTV;
+import sune.etc.faso.server.ServerLetWatch;
 import sune.etc.faso.server.ServerOpenLoad;
 import sune.etc.faso.server.ServerYouWatch;
 import sune.etc.faso.util.Utils;
@@ -33,7 +35,6 @@ import sune.etc.faso.video.VideoSources;
 
 public final class FASO {
 	
-	// TODO: Add support for multiple URLs getting from one server
 	// TODO: Add support for getting subtitles from a server
 	
 	public static final String 			   SERVER_URL;
@@ -63,9 +64,11 @@ public final class FASO {
 		SERVERS.register("exashare", ServerExashare.class);
 		SERVERS.register("anyfiles", ServerAnyFiles.class);
 		SERVERS.register("openload", ServerOpenLoad.class);
+		SERVERS.register("letwatch", ServerLetWatch.class);
 		// Register all the default downloaders
 		DOWNLOADERS.register("mp4",  DownloaderMP4.class);
 		DOWNLOADERS.register("m3u8", DownloaderM3U8.class);
+		DOWNLOADERS.register("flv",  DownloaderFLV.class);
 		// Set the important Regular expressions
 		REGEX_VIDEO_PAGE_LINK = "^/video/(.*?)/watchv=(.*?)/([0-9]+)/(?:\\#c1)?$";
 		REGEX_LINK_EPISODE	  = "^/serialy/(.*?)/(.*?)/(\\d+)/$";

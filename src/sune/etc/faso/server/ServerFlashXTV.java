@@ -1,6 +1,8 @@
 package sune.etc.faso.server;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -69,8 +71,9 @@ public class ServerFlashXTV implements Server {
 	}
 	
 	@Override
-	public VideoSource getVideoSource(Document document) {
-		String videoID = null;
+	public VideoSource[] getVideoSource(Document document) {
+		List<VideoSource> sources = new ArrayList<>();
+		List<String> list 		  = new ArrayList<>();
 		// Test iframes with the correct source url
 		Elements iframes = document.select("iframe[src]");
 		if(iframes.size() > 0) {
@@ -79,26 +82,28 @@ public class ServerFlashXTV implements Server {
 				String src = iframe.attr("src");
 				Matcher matcher = pattern.matcher(src);
 				if(matcher.matches()) {
-					videoID = matcher.group(1);
-					break;
+					list.add(matcher.group(1));
 				}
 			}
 		}
-		if(videoID != null) {
-			try {
-				String playURL 	  = videoPlayLink(videoID);
-				Document doc 	  = Utils.getDocument(playURL);
-				String jsVideo 	  = videoJS(doc);
-				String result 	  = (String) JavaScript.execute(jsVideo);
-				String playerData = playerSetupData(result);
-				SSDArray array 	  = new SSDFCore(playerData).getArray();
-				String videoURL   = array.getObject("sources.0.file").stringValue();
-				long fileSize 	  = Utils.getFileSizeURL(videoURL);
-				return new VideoSource(this, new URL(videoURL), VideoFormat.MP4, fileSize);
-			} catch(Exception ex) {
+		if(!list.isEmpty()) {
+			for(String videoID : list) {
+				try {
+					String playURL 	  = videoPlayLink(videoID);
+					Document doc 	  = Utils.getDocument(playURL);
+					String jsVideo 	  = videoJS(doc);
+					String result 	  = (String) JavaScript.execute(jsVideo);
+					String playerData = playerSetupData(result);
+					SSDArray array 	  = new SSDFCore(playerData).getArray();
+					String videoURL   = array.getObject("sources.0.file").stringValue();
+					long fileSize 	  = Utils.getFileSizeURL(videoURL);
+					VideoSource vs	  = new VideoSource(this, new URL(videoURL), VideoFormat.MP4, fileSize);
+					sources.add(vs);
+				} catch(Exception ex) {
+				}
 			}
 		}
-		return null;
+		return sources.toArray(new VideoSource[sources.size()]);
 	}
 	
 	@Override
