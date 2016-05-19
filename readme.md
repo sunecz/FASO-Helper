@@ -14,10 +14,12 @@ FASO-Helper supports getting video links from few servers that can be found on t
 * Exashare (http://exashare.com/)
 * AnyFiles (https://anyfiles.pl/)
 * OpenLoad (https://openload.co/)
+* LetWatch (http://letwatch.us/)
 
 and also supports downloading of few video formats:
 
 * .m3u8
 * .mp4
+* .flv
 
 _**Note**: This library supports custom adding of servers or downloaders!_
