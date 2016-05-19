@@ -18,8 +18,8 @@ FASO-Helper supports getting video links from few servers that can be found on t
 
 and also supports downloading of few video formats:
 
-* .m3u8
-* .mp4
-* .flv
+* M3U8
+* MP4
+* FLV
 
 _**Note**: This library supports custom adding of servers or downloaders!_
