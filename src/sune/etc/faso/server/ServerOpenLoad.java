@@ -1,6 +1,8 @@
 package sune.etc.faso.server;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,8 +31,9 @@ public class ServerOpenLoad implements Server {
 	}
 	
 	@Override
-	public VideoSource getVideoSource(Document document) {
-		String url = null;
+	public VideoSource[] getVideoSource(Document document) {
+		List<VideoSource> sources = new ArrayList<>();
+		List<String> list 		  = new ArrayList<>();
 		// Test all iframes with src attribute
 		Elements iframes = document.select("iframe[src]");
 		if(iframes.size() > 0) {
@@ -39,70 +42,69 @@ public class ServerOpenLoad implements Server {
 				String src 		= iframe.attr("src");
 				Matcher matcher = pattern.matcher(src);
 				if(matcher.matches()) {
-					url = src;
-					break;
+					list.add(src);
 				}
 			}
 		}
-		if(url == null) {
-			// Test all anchors with href attribute
-			Elements anchors = document.select("a[href]");
-			if(anchors.size() > 0) {
-				Pattern pattern = Pattern.compile(REGEX_EMBED_URL);
-				for(Element anchor : anchors) {
-					String href 	= anchor.attr("href");
-					Matcher matcher = pattern.matcher(href);
-					if(matcher.matches()) {
-						url = href;
-						break;
-					}
+		// Test all anchors with href attribute
+		Elements anchors = document.select("a[href]");
+		if(anchors.size() > 0) {
+			Pattern pattern = Pattern.compile(REGEX_EMBED_URL);
+			for(Element anchor : anchors) {
+				String href 	= anchor.attr("href");
+				Matcher matcher = pattern.matcher(href);
+				if(matcher.matches()) {
+					list.add(href);
 				}
 			}
 		}
-		if(url != null) {
-			String videoURL  = null;
-			Document diframe = Utils.getDocument(url);
-			Elements scripts = diframe.select("script[type]");
-			if(scripts.size() > 0) {
-				for(Element script : scripts) {
-					String con = script.html();
-					if(con.startsWith(AAENCODE_PREFIX)) {
-						String value = Utils.aadecode(con).replace("window.", "var ");
-						videoURL 	 = (String) JavaScript.execute(value + "vs;");
-						// The vs variable does not have to be visible for the first time,
-						// it can be wrapped in another variable or it can be a variable
-						// with completely different name.
-						if(videoURL == null && value.startsWith("var ")) {
-							String string  = value.substring(4);
-							int eqsign	   = string.indexOf('=');
-							String varname = string.substring(0, eqsign).trim();
-							videoURL 	   = (String) JavaScript.execute(value + varname);
+		if(!list.isEmpty()) {
+			for(String url : list) {
+				String videoURL  = null;
+				Document diframe = Utils.getDocument(url);
+				Elements scripts = diframe.select("script[type]");
+				if(scripts.size() > 0) {
+					for(Element script : scripts) {
+						String con = script.html();
+						if(con.startsWith(AAENCODE_PREFIX)) {
+							String value = Utils.aadecode(con).replace("window.", "var ");
+							videoURL 	 = (String) JavaScript.execute(value + "vs;");
+							// The vs variable does not have to be visible for the first time,
+							// it can be wrapped in another variable or it can be a variable
+							// with completely different name.
+							if(videoURL == null && value.startsWith("var ")) {
+								String string  = value.substring(4);
+								int eqsign	   = string.indexOf('=');
+								String varname = string.substring(0, eqsign).trim();
+								videoURL 	   = (String) JavaScript.execute(value + varname);
+							}
+							break;
 						}
-						break;
 					}
 				}
-			}
-			if(videoURL != null) {
-				// Get an exact file URL from the gotten stream URL
-				try {
-					// Openload.co uses HTTPS protocol
-					HttpsURLConnection con =
-						(HttpsURLConnection) new URL(videoURL).openConnection();
-					con.setInstanceFollowRedirects(false);
-					con.connect();
-					
-					// Catch the redirection
-					if(con.getResponseCode() == 302) {
-						// Get the redirection URL
-						videoURL = con.getHeaderField("Location");
+				if(videoURL != null) {
+					// Get an exact file URL from the gotten stream URL
+					try {
+						// Openload.co uses HTTPS protocol
+						HttpsURLConnection con =
+							(HttpsURLConnection) new URL(videoURL).openConnection();
+						con.setInstanceFollowRedirects(false);
+						con.connect();
+						
+						// Catch the redirection
+						if(con.getResponseCode() == 302) {
+							// Get the redirection URL
+							videoURL = con.getHeaderField("Location");
+						}
+						long fileSize  = Utils.getFileSizeURL(videoURL);
+						VideoSource vs = new VideoSource(this, new URL(videoURL), VideoFormat.MP4, fileSize);
+						sources.add(vs);
+					} catch(Exception ex) {
 					}
-					long fileSize = Utils.getFileSizeURL(videoURL);
-					return new VideoSource(this, new URL(videoURL), VideoFormat.MP4, fileSize);
-				} catch(Exception ex) {
 				}
 			}
 		}
-		return null;
+		return sources.toArray(new VideoSource[sources.size()]);
 	}
 	
 	@Override

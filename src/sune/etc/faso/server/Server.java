@@ -6,7 +6,7 @@ import sune.etc.faso.video.VideoSource;
 
 public interface Server {
 	
-	public VideoSource getVideoSource(Document document);
+	public VideoSource[] getVideoSource(Document document);
 	public String getAddress();
 	public String getName();
 }

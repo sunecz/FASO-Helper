@@ -1,6 +1,8 @@
 package sune.etc.faso.server;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,8 +32,9 @@ public class ServerAnyFiles implements Server {
 	}
 	
 	@Override
-	public VideoSource getVideoSource(Document document) {
-		String videoID = null;
+	public VideoSource[] getVideoSource(Document document) {
+		List<VideoSource> sources = new ArrayList<>();
+		List<String> list 		  = new ArrayList<>();
 		// Test iframes with the correct source url
 		Elements iframes = document.select("iframe[src]");
 		if(iframes.size() > 0) {
@@ -40,72 +43,74 @@ public class ServerAnyFiles implements Server {
 				String src = iframe.attr("src");
 				Matcher matcher = pattern.matcher(src);
 				if(matcher.matches()) {
-					videoID = matcher.group(1);
-					break;
+					list.add(matcher.group(1));
 				}
 			}
 		}
-		if(videoID != null) {
-			try {
-				String url  = videoPlayLink(videoID);
-				String html = Utils.request("GET", url, UserAgent.MOZILLA2,
-					null, null, null, Utils.headers("Referer=\""+url+"\"")).result;
-				Document doc   = Utils.createDocument(html);
-				String dataURL = null;
-				for(Element script : doc.select("script[src]")) {
-					String src = script.attr("src");
-					if(src.startsWith("/pcs?code=")) {
-						dataURL = "http://video.anyfiles.pl" + src;
-						break;
-					}
-				}
-				if(dataURL != null) {
-					// Get the video data (JavaScript)
-					String data = Utils.request("GET", dataURL, UserAgent.MOZILLA2,
+		if(!list.isEmpty()) {
+			for(String videoID : list) {
+				try {
+					String url  = videoPlayLink(videoID);
+					String html = Utils.request("GET", url, UserAgent.MOZILLA2,
 						null, null, null, Utils.headers("Referer=\""+url+"\"")).result;
-					// Get the source URL in source variable
-					StringBuilder sb = new StringBuilder();
-					char[] chars = data.toCharArray();
-					boolean value = false;
-					boolean quotes = false;
-					String svalue = null;
-					for(int i = 0, l = chars.length; i < l; ++i) {
-						char c = chars[i];
-						if(value) {
-							if(c == '"') {
-								quotes = !quotes;
-							} else if(c == ';' && !quotes) {
-								svalue = sb.toString().trim();
-								sb.setLength(0);
-								break;
-							} else {
-								sb.append(c);
-							}
-						} else {
-							if(c == '=') {
-								if(sb.toString().trim()
-									 .equals("var source")) {
-									value = true;
-								}
-								sb.setLength(0);
-							} else {
-								sb.append(c);
-							}
+					Document doc   = Utils.createDocument(html);
+					String dataURL = null;
+					for(Element script : doc.select("script[src]")) {
+						String src = script.attr("src");
+						if(src.startsWith("/pcs?code=")) {
+							dataURL = "http://video.anyfiles.pl" + src;
+							break;
 						}
 					}
-					// Get src attribute's value
-					int index0 = svalue.indexOf("src=\\");
-					int index1 = svalue.indexOf("\\", index0+5);
-					if(index0 > -1 && index1 > -1) {
-						String source = svalue.substring(index0+5, index1);
-						long fileSize = Utils.getFileSizeURL(source);
-						return new VideoSource(this, new URL(source), VideoFormat.MP4, fileSize);
+					if(dataURL != null) {
+						// Get the video data (JavaScript)
+						String data = Utils.request("GET", dataURL, UserAgent.MOZILLA2,
+							null, null, null, Utils.headers("Referer=\""+url+"\"")).result;
+						// Get the source URL in source variable
+						StringBuilder sb = new StringBuilder();
+						char[] chars = data.toCharArray();
+						boolean value = false;
+						boolean quotes = false;
+						String svalue = null;
+						for(int i = 0, l = chars.length; i < l; ++i) {
+							char c = chars[i];
+							if(value) {
+								if(c == '"') {
+									quotes = !quotes;
+								} else if(c == ';' && !quotes) {
+									svalue = sb.toString().trim();
+									sb.setLength(0);
+									break;
+								} else {
+									sb.append(c);
+								}
+							} else {
+								if(c == '=') {
+									if(sb.toString().trim()
+										 .equals("var source")) {
+										value = true;
+									}
+									sb.setLength(0);
+								} else {
+									sb.append(c);
+								}
+							}
+						}
+						// Get src attribute's value
+						int index0 = svalue.indexOf("src=\\");
+						int index1 = svalue.indexOf("\\", index0+5);
+						if(index0 > -1 && index1 > -1) {
+							String source  = svalue.substring(index0+5, index1);
+							long fileSize  = Utils.getFileSizeURL(source);
+							VideoSource vs = new VideoSource(this, new URL(source), VideoFormat.MP4, fileSize);
+							sources.add(vs);
+						}
 					}
+				} catch(Exception ex) {
 				}
-			} catch(Exception ex) {
 			}
 		}
-		return null;
+		return sources.toArray(new VideoSource[sources.size()]);
 	}
 	
 	@Override

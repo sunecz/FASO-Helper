@@ -15,9 +15,11 @@ public class ServerRegistry extends ClassRegistry<Server> {
 	public Servers getServers(Document document) {
 		List<Server> list = new LinkedList<>();
 		for(String name : names()) {
-			Server server 	   = instance(name);
-			VideoSource source = server.getVideoSource(document);
-			if(source != null) list.add(server);
+			Server server 		  = instance(name);
+			VideoSource[] sources = server.getVideoSource(document);
+			if(sources != null && sources.length > 0) {
+				list.add(server);
+			}
 		}
 		return new Servers(list);
 	}
@@ -25,9 +27,12 @@ public class ServerRegistry extends ClassRegistry<Server> {
 	public VideoSources getVideoSources(Document document) {
 		List<VideoSource> list = new LinkedList<>();
 		for(String name : names()) {
-			Server server 	   = instance(name);
-			VideoSource source = server.getVideoSource(document);
-			if(source != null) list.add(source);
+			Server server 		  = instance(name);
+			VideoSource[] sources = server.getVideoSource(document);
+			if(sources != null && sources.length > 0) {
+				for(VideoSource source : sources)
+					list.add(source);
+			}
 		}
 		return new VideoSources(list);
 	}
