@@ -12,6 +12,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import sune.etc.faso.subtitles.Subtitles;
 import sune.etc.faso.util.JavaScript;
 import sune.etc.faso.util.Utils;
 import sune.etc.faso.video.VideoFormat;
@@ -60,15 +61,14 @@ public class ServerOpenLoad implements Server {
 		}
 		if(!list.isEmpty()) {
 			for(String url : list) {
-				String videoURL  = null;
 				Document diframe = Utils.getDocument(url);
 				Elements scripts = diframe.select("script[type]");
 				if(scripts.size() > 0) {
 					for(Element script : scripts) {
 						String con = script.html();
 						if(con.startsWith(AAENCODE_PREFIX)) {
-							String value = Utils.aadecode(con).replace("window.", "var ");
-							videoURL 	 = (String) JavaScript.execute(value + "vs;");
+							String value 	= Utils.aadecode(con).replace("window.", "var ");
+							String videoURL = (String) JavaScript.execute(value + "vs;");
 							// The vs variable does not have to be visible for the first time,
 							// it can be wrapped in another variable or it can be a variable
 							// with completely different name.
@@ -77,29 +77,40 @@ public class ServerOpenLoad implements Server {
 								int eqsign	   = string.indexOf('=');
 								String varname = string.substring(0, eqsign).trim();
 								videoURL 	   = (String) JavaScript.execute(value + varname);
+								// Get an exact file URL from the gotten stream URL
+								try {
+									// Openload.co uses HTTPS protocol
+									HttpsURLConnection hcon =
+										(HttpsURLConnection) new URL(videoURL).openConnection();
+									hcon.setInstanceFollowRedirects(false);
+									hcon.connect();
+									
+									// Catch the redirection
+									if(hcon.getResponseCode() == 302) {
+										// Get the redirection URL
+										videoURL = hcon.getHeaderField("Location");
+									}
+									
+									// Get all subtitles
+									List<Subtitles> listSubs = new ArrayList<>();
+									for(Element track : diframe.select("track[src]")) {
+										if(track.attr("kind").equals("captions")) {
+											String surl = track.attr("src");
+											String lang = track.attr("label");
+											listSubs.add(new Subtitles(surl, lang));
+										}
+									}
+									
+									Subtitles[] subs = listSubs.toArray(new Subtitles[listSubs.size()]);
+									long fileSize  	 = Utils.getFileSizeURL(videoURL);
+									VideoSource vs 	 = new VideoSource(this, new URL(videoURL),
+										VideoFormat.MP4, null, fileSize, null, null, subs);
+									sources.add(vs);
+								} catch(Exception ex) {
+								}
 							}
 							break;
 						}
-					}
-				}
-				if(videoURL != null) {
-					// Get an exact file URL from the gotten stream URL
-					try {
-						// Openload.co uses HTTPS protocol
-						HttpsURLConnection con =
-							(HttpsURLConnection) new URL(videoURL).openConnection();
-						con.setInstanceFollowRedirects(false);
-						con.connect();
-						
-						// Catch the redirection
-						if(con.getResponseCode() == 302) {
-							// Get the redirection URL
-							videoURL = con.getHeaderField("Location");
-						}
-						long fileSize  = Utils.getFileSizeURL(videoURL);
-						VideoSource vs = new VideoSource(this, new URL(videoURL), VideoFormat.MP4, fileSize);
-						sources.add(vs);
-					} catch(Exception ex) {
 					}
 				}
 			}
