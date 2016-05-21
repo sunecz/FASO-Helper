@@ -23,3 +23,14 @@ and also supports downloading of few video formats:
 * FLV
 
 _**Note**: This library supports custom adding of servers or downloaders!_
+
+
+This library uses 3rd-party libraries:
+* org.json (JSON library; version: 20160212; http://mvnrepository.com/artifact/org.json/json)
+* jsoup (HTML Parser; version: 1.9.2; https://jsoup.org/)
+
+And also uses not 3rd-party libraries:
+* ssdf-reader (SSDF Reader; version 1.1; https://github.com/sunecz/SSDF-Reader)
+* jd-utils (Java Downloader Utils; version: 1.1)
+* jd-mp4 (Java Downloader for MP4 files; version: 1.0)
+* jd-m3u8 (Java Downloader for M3U8 files; version: 1.2)
