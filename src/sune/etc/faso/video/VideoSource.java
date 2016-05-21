@@ -1,10 +1,11 @@
 package sune.etc.faso.video;
 
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Map;
 
 import sune.etc.faso.server.Server;
-import sune.etc.faso.util.Utils;
+import sune.etc.faso.subtitles.Subtitles;
 
 public class VideoSource {
 	
@@ -14,24 +15,20 @@ public class VideoSource {
 	private final Map<String, String> data;
 	private final long				  size;
 	private final String			  userAgent;
-	
-	public VideoSource(Server server, URL url, VideoFormat format, long size) {
-		this(server, url, format, (Map<String, String>) null, size, null);
-	}
+	private final String			  quality;
+	private final Subtitles[]		  subtitles;
 	
 	public VideoSource(Server server, URL url, VideoFormat format,
-			String data, long size) {
-		this(server, url, format, Utils.headers(data), size, null);
-	}
-	
-	public VideoSource(Server server, URL url, VideoFormat format,
-			Map<String, String> data, long size, String userAgent) {
+			Map<String, String> data, long size, String userAgent,
+			String quality, Subtitles[] subtitles) {
 		this.server    = server;
 		this.url 	   = url;
 		this.format    = format;
 		this.data	   = data;
 		this.size	   = size;
 		this.userAgent = userAgent;
+		this.quality   = quality;
+		this.subtitles = subtitles;
 	}
 	
 	public Server getServer() {
@@ -62,9 +59,18 @@ public class VideoSource {
 		return userAgent;
 	}
 	
+	public String getQuality() {
+		return quality;
+	}
+	
+	public Subtitles[] getSubtitles() {
+		return subtitles;
+	}
+	
 	@Override
 	public String toString() {
-		return String.format("{server=%s, url=%s, format=%s, size=%d}",
-			server.toString(), url.toExternalForm(), format.name(), size);
+		return String.format("{server=%s, url=%s, format=%s, size=%d, quality=%s, subtitles=%s}",
+			server.toString(), url.toExternalForm(), format.name(), size, quality,
+			Arrays.toString(subtitles));
 	}
 }

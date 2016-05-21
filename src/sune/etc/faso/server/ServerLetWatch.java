@@ -3,6 +3,7 @@ package sune.etc.faso.server;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,6 +11,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import sune.etc.faso.subtitles.Subtitles;
 import sune.etc.faso.util.JavaScript;
 import sune.etc.faso.util.Utils;
 import sune.etc.faso.video.VideoFormat;
@@ -95,10 +97,27 @@ public class ServerLetWatch implements Server {
 					String result 	  = (String) JavaScript.execute(jsVideo);
 					String playerData = playerSetupData(result);
 					SSDArray array 	  = new SSDFCore(playerData).getArray();
-					String videoURL   = array.getObject("sources.0.file").stringValue();
-					long fileSize 	  = Utils.getFileSizeURL(videoURL);
-					VideoSource vs	  = new VideoSource(this, new URL(videoURL), VideoFormat.FLV, fileSize);
-					sources.add(vs);
+					
+					List<Subtitles> listSubs = new ArrayList<>();
+					Map<String, Map<String, String>> tracks = Utils.convert(array.getArray("tracks"));
+					for(Map<String, String> map : tracks.values()) {
+						if(map.get("kind").equals("captions")) {
+							String surl = map.get("file");
+							String lang = map.get("label");
+							listSubs.add(new Subtitles(surl, lang));
+						}
+					}
+					
+					Subtitles[] subs = listSubs.toArray(new Subtitles[listSubs.size()]);
+					Map<String, Map<String, String>> arrsrcs = Utils.convert(array.getArray("sources"));
+					for(Map<String, String> map : arrsrcs.values()) {
+						String furl    = map.get("file");
+						String quality = map.get("label");
+						long fileSize  = Utils.getFileSizeURL(furl);
+						VideoSource vs = new VideoSource(this, new URL(furl),
+							VideoFormat.FLV, null, fileSize, null, quality, subs);
+						sources.add(vs);
+					}
 				} catch(Exception ex) {
 				}
 			}

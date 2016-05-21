@@ -200,8 +200,8 @@ public class ServerHqqTV implements Server {
 							}
 							String videoURL = sb.toString();
 							long fileSize 	= Utils.getFileSizeURL(videoURL, UserAgent.IPHONE);
-							VideoSource vs  = new VideoSource(this, new URL(videoURL), VideoFormat.M3U8,
-									null, fileSize, UserAgent.IPHONE);
+							VideoSource vs  = new VideoSource(this, new URL(videoURL),
+								VideoFormat.M3U8, null, fileSize, UserAgent.IPHONE, null, null);
 							sources.add(vs);
 						}
 					}

@@ -102,7 +102,8 @@ public class ServerAnyFiles implements Server {
 						if(index0 > -1 && index1 > -1) {
 							String source  = svalue.substring(index0+5, index1);
 							long fileSize  = Utils.getFileSizeURL(source);
-							VideoSource vs = new VideoSource(this, new URL(source), VideoFormat.MP4, fileSize);
+							VideoSource vs = new VideoSource(this, new URL(source),
+								VideoFormat.MP4, null, fileSize, null, null, null);
 							sources.add(vs);
 						}
 					}

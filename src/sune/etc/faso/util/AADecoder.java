@@ -248,7 +248,7 @@ public class AADecoder {
 			} else break;
 		}
 		return matches.size() >= 6 ?
-					Utils.IntegerToInt(
+					Utils.toIntArray(
 						matches.subList(4, 6).toArray(new Integer[2])) :
 					null;
 	}

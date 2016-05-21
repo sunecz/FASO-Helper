@@ -28,6 +28,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import sune.ssdf.SSDArray;
+import sune.ssdf.SSDObject;
+
 public class Utils {
 	
 	public static final Charset CHARSET;
@@ -573,11 +576,33 @@ public class Utils {
 		}
 	}
 	
-	public static final int[] IntegerToInt(Integer[] a) {
+	public static final int[] toIntArray(Integer[] a) {
 		int   l = a.length;
 		int[] b = new int[l];
 		for(int i = 0; i < l; ++i)
 			b[i] = a[i];
 		return b;
+	}
+	
+	// Converts a SSDArray to formatted 2-dimensional map of strings
+	public static final Map<String, Map<String, String>> convert(SSDArray array) {
+		Map<String, Map<String, String>> map = new LinkedHashMap<>();
+		for(Entry<String, SSDObject> entry : array.getAllObjects().entrySet()) {
+			String name 	= entry.getKey();
+			SSDObject value = entry.getValue();
+			int indexDot    = name.indexOf('.');
+			String mapName  = name.substring(0, indexDot);
+			String valName  = name.substring(indexDot+1);
+			// This data conversion is allowed for only 2-dimensional data
+			if(valName.indexOf('.') == -1) {
+				Map<String, String> map2;
+				if((map2 = map.get(mapName)) == null) {
+					map2 = new LinkedHashMap<>();
+					map.put(mapName, map2);
+				}
+				map2.put(valName, value.stringValue());
+			}
+		}
+		return map;
 	}
 }
