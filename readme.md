@@ -34,3 +34,6 @@ And also uses not 3rd-party libraries:
 * jd-utils (Java Downloader Utils; version: 1.1)
 * jd-mp4 (Java Downloader for MP4 files; version: 1.0)
 * jd-m3u8 (Java Downloader for M3U8 files; version: 1.2)
+
+## License
+MIT (https://github.com/sunecz/FASO-Helper/blob/master/license.md)
