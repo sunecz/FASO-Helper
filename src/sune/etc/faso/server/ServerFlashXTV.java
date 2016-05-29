@@ -15,6 +15,7 @@ import sune.etc.faso.subtitles.Subtitles;
 import sune.etc.faso.util.JavaScript;
 import sune.etc.faso.util.Utils;
 import sune.etc.faso.video.VideoFormat;
+import sune.etc.faso.video.VideoQuality;
 import sune.etc.faso.video.VideoSource;
 import sune.ssdf.SSDArray;
 import sune.ssdf.SSDFCore;
@@ -99,24 +100,31 @@ public class ServerFlashXTV implements Server {
 					SSDArray array 	  = new SSDFCore(playerData).getArray();
 					
 					List<Subtitles> listSubs = new ArrayList<>();
-					Map<String, Map<String, String>> tracks = Utils.convert(array.getArray("tracks"));
-					for(Map<String, String> map : tracks.values()) {
-						if(map.get("kind").equals("captions")) {
-							String surl = map.get("file");
-							String lang = map.get("label");
-							listSubs.add(new Subtitles(surl, lang));
+					if(array.hasArray("tracks")) {
+						SSDArray arrTracks = array.getArray("tracks");
+						Map<String, Map<String, String>> tracks = Utils.convert(arrTracks);
+						for(Map<String, String> map : tracks.values()) {
+							if(map.get("kind").equals("captions")) {
+								String surl = map.get("file");
+								String lang = map.get("label");
+								listSubs.add(new Subtitles(surl, lang));
+							}
 						}
 					}
 					
-					Subtitles[] subs = listSubs.toArray(new Subtitles[listSubs.size()]);
-					Map<String, Map<String, String>> arrsrcs = Utils.convert(array.getArray("sources"));
-					for(Map<String, String> map : arrsrcs.values()) {
-						String furl    = map.get("file");
-						String quality = map.get("label");
-						long fileSize  = Utils.getFileSizeURL(furl);
-						VideoSource vs = new VideoSource(this, new URL(furl),
-							VideoFormat.MP4, null, fileSize, null, quality, subs);
-						sources.add(vs);
+					if(array.hasArray("sources")) {
+						SSDArray arrSources = array.getArray("sources");
+						Subtitles[] subs = listSubs.toArray(new Subtitles[listSubs.size()]);
+						if(subs.length == 0) subs = null;
+						Map<String, Map<String, String>> arrsrcs = Utils.convert(arrSources);
+						for(Map<String, String> map : arrsrcs.values()) {
+							String furl    = map.get("file");
+							String quality = map.get("label");
+							long fileSize  = Utils.getFileSizeURL(furl);
+							VideoSource vs = new VideoSource(this, new URL(furl),
+								VideoFormat.MP4, null, fileSize, null, VideoQuality.get(quality), subs);
+							sources.add(vs);
+						}
 					}
 				} catch(Exception ex) {
 				}

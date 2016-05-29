@@ -35,8 +35,6 @@ import sune.etc.faso.video.VideoSources;
 
 public final class FASO {
 	
-	// TODO: Add support for getting subtitles from a server
-	
 	public static final String 			   SERVER_URL;
 	public static final ServerRegistry 	   SERVERS;
 	public static final DownloaderRegistry DOWNLOADERS;
