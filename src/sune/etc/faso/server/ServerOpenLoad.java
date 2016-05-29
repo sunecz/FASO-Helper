@@ -16,6 +16,7 @@ import sune.etc.faso.subtitles.Subtitles;
 import sune.etc.faso.util.JavaScript;
 import sune.etc.faso.util.Utils;
 import sune.etc.faso.video.VideoFormat;
+import sune.etc.faso.video.VideoQuality;
 import sune.etc.faso.video.VideoSource;
 
 public class ServerOpenLoad implements Server {
@@ -102,9 +103,11 @@ public class ServerOpenLoad implements Server {
 									}
 									
 									Subtitles[] subs = listSubs.toArray(new Subtitles[listSubs.size()]);
+									if(subs.length == 0) subs = null;
 									long fileSize  	 = Utils.getFileSizeURL(videoURL);
 									VideoSource vs 	 = new VideoSource(this, new URL(videoURL),
-										VideoFormat.MP4, null, fileSize, null, null, subs);
+										VideoFormat.MP4, null, fileSize, null,
+										VideoQuality.QUALITY_UNKNOWN, subs);
 									sources.add(vs);
 								} catch(Exception ex) {
 								}

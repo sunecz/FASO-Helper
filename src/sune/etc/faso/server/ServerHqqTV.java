@@ -17,6 +17,7 @@ import sune.etc.faso.util.UserAgent;
 import sune.etc.faso.util.Utils;
 import sune.etc.faso.util.Utils.RequestResult;
 import sune.etc.faso.video.VideoFormat;
+import sune.etc.faso.video.VideoQuality;
 import sune.etc.faso.video.VideoSource;
 
 public class ServerHqqTV implements Server {
@@ -201,7 +202,8 @@ public class ServerHqqTV implements Server {
 							String videoURL = sb.toString();
 							long fileSize 	= Utils.getFileSizeURL(videoURL, UserAgent.IPHONE);
 							VideoSource vs  = new VideoSource(this, new URL(videoURL),
-								VideoFormat.M3U8, null, fileSize, UserAgent.IPHONE, null, null);
+								VideoFormat.M3U8, null, fileSize, UserAgent.IPHONE,
+								VideoQuality.QUALITY_UNKNOWN, null);
 							sources.add(vs);
 						}
 					}

@@ -15,12 +15,12 @@ public class VideoSource {
 	private final Map<String, String> data;
 	private final long				  size;
 	private final String			  userAgent;
-	private final String			  quality;
+	private final VideoQuality		  quality;
 	private final Subtitles[]		  subtitles;
 	
 	public VideoSource(Server server, URL url, VideoFormat format,
 			Map<String, String> data, long size, String userAgent,
-			String quality, Subtitles[] subtitles) {
+			VideoQuality quality, Subtitles[] subtitles) {
 		this.server    = server;
 		this.url 	   = url;
 		this.format    = format;
@@ -59,7 +59,7 @@ public class VideoSource {
 		return userAgent;
 	}
 	
-	public String getQuality() {
+	public VideoQuality getQuality() {
 		return quality;
 	}
 	

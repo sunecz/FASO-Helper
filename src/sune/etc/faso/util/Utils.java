@@ -605,4 +605,37 @@ public class Utils {
 		}
 		return map;
 	}
+	
+	// Provides realtivelly fast method for converting a string into an integer
+	// not using any built-in function and ignoring all other characters that
+	// are not defined as digits.
+	public static final int extractInt(String string) {
+		if(string == null || string.isEmpty()) {
+			throw new IllegalArgumentException(
+				"The given string cannot be null nor empty!");
+		}
+		boolean has	 = false;
+		boolean neg  = false;
+		int value 	 = 0;
+		int temp  	 = 0;
+		char[] chars = string.toCharArray();
+		for(int i = 0, l = chars.length, c; i < l; ++i) {
+			if((c 	 = chars[i]) == '-') neg = true; else
+			if((temp = Character.digit(c, 10)) != -1) {
+				int val = (value * 10) - temp;
+				if((val > value) || (!neg && val == Integer.MIN_VALUE)) {
+					throw new IllegalArgumentException(
+						"The given string contains number outside of " +
+						"the range of a signed integer!");
+				}
+				value = val;
+				has   = true;
+			}
+		}
+		if(!has) {
+			throw new IllegalArgumentException(
+				"The given string does not contain any digit!");
+		}
+		return neg ? value : -value;
+	}
 }
