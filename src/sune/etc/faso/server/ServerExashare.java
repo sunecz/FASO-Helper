@@ -26,7 +26,7 @@ public class ServerExashare implements Server {
 	private static final String JWPLAYER_SETUP_TEXT;
 	
 	static {
-		REGEX_IFRAME_URL 	= "^http://(?:www\\.)?exashare\\.com/embed-(.*?)(?:-(?:.*?))?\\.html$";
+		REGEX_IFRAME_URL 	= "^https?://(?:www\\.)?exashare\\.com/embed-(.*?)(?:-(?:.*?))?\\.html$";
 		JWPLAYER_SETUP_TEXT = "jwplayer(\"vplayer\").setup(";
 	}
 	

@@ -20,7 +20,7 @@ public class ServerAnyFiles implements Server {
 	private static final String REGEX_IFRAME_URL;
 	
 	static {
-		REGEX_IFRAME_URL = "^http://(?:www\\.)?video\\.anyfiles\\.pl/w.jsp\\?id=(\\d+)(?:&(?:.*?))?$";
+		REGEX_IFRAME_URL = "^https?://(?:www\\.)?video\\.anyfiles\\.pl/w.jsp\\?id=(\\d+)(?:&(?:.*?))?$";
 	}
 	
 	static String videoPlayLink(String videoID) {

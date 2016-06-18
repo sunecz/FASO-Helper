@@ -606,7 +606,7 @@ public class Utils {
 		return map;
 	}
 	
-	// Provides realtivelly fast method for converting a string into an integer
+	// Provides realtively fast method for converting a string into an integer
 	// not using any built-in function and ignoring all other characters that
 	// are not defined as digits.
 	public static final int extractInt(String string) {

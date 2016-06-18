@@ -3,6 +3,7 @@ package sune.etc.faso.server;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,6 +39,22 @@ public class ServerHqqTV implements Server {
 			}
 			return t;
 		}
+		
+		public static final long sizeOf_m3u8(String url) {
+			String content = Utils.quickGETRequest(url, UserAgent.IPHONE);
+			String baseurl = url.substring(0, url.lastIndexOf('/')+1);
+			String[] lines = content.split("\n");
+			long totalSize = 0;
+			for(int i = 0, l = lines.length; i < l; ++i) {
+				String line;
+				if((line = lines[i]).startsWith("#"))
+					continue;
+				String fileurl = baseurl + line;
+				totalSize 	  += Utils.getFileSizeURL(fileurl, UserAgent.IPHONE,
+					(Map<String, String>) null);
+			}
+			return totalSize;
+		}
 	}
 	
 	private static final String URL_EMBED_PLAYER;
@@ -52,9 +69,9 @@ public class ServerHqqTV implements Server {
 		URL_EMBED_PLAYER  = "http://hqq.tv/player/embed_player.php";
 		URL_IP_ADDRESS 	  = "http://hqq.tv/player/ip.php";
 		URL_GET_MD5_DATA  = "http://hqq.tv/player/get_md5.php";
-		REGEX_IFRAME_URL  = "^http://(?:www\\.)?hqq\\.tv/player/embed_player\\.php\\?vid=(.*?)(&(?:.*?))?$";
-		REGEX_FORM_URL 	  = "^http://(?:www\\.)?hqq\\.tv/player/embed_player\\.php$";
-		REGEX_SCRIPT_HASH = "^http://(?:www\\.)?hqq\\.tv/player/hash\\.php\\?hash=(.*?)$";
+		REGEX_IFRAME_URL  = "^https?://(?:www\\.)?hqq\\.tv/player/embed_player\\.php\\?vid=(.*?)(&(?:.*?))?$";
+		REGEX_FORM_URL 	  = "^https?://(?:www\\.)?hqq\\.tv/player/embed_player\\.php$";
+		REGEX_SCRIPT_HASH = "^https?://(?:www\\.)?hqq\\.tv/player/hash\\.php\\?hash=(.*?)$";
 	}
 	
 	ServerHqqTV() {
@@ -136,7 +153,7 @@ public class ServerHqqTV implements Server {
 								).result
 							).getString("ip");
 					} catch(Exception ex) {
-						// Probably parsing error
+						// Probably a parsing error
 					}
 					
 					// Get the at id value or whatever it is
@@ -171,15 +188,44 @@ public class ServerHqqTV implements Server {
 								Matcher m_vidserver = p_vidserver.matcher(executed);
 								if(m_vidlink.find())   vidlink 	 = m_vidlink.group(1);
 								if(m_vidserver.find()) vidserver = m_vidserver.group(1);
-								if(vidlink != null && vidserver != null)
-									break;
+								if(vidlink != null && vidserver != null) break;
+								// If this finding-by-pattern method fails because of, for example,
+								// a variable naming, use another method.
+								// This method finds a script tag that contains document.domain info,
+								// particulary document.domain="hqq.tv";
+								// In this script there are contained three variables and they go
+								// in this order: hash, video_link, video_server. Just extract these
+								// variables' values and save video_link and video_server data.
+								if(executed.toLowerCase().contains("document.domain")) {
+									// Split the statements
+									String[] stats = executed.split("\\;");
+									// Check if the number of statements is correct.
+									// The correct number is five, there should be these statements:
+									// setting document.domain, three variables, and one additional
+									// value for closing the script tag.
+									if(stats.length == 5) {
+										// Get the video_link and video_server variables
+										String var_vidlink   = stats[2];
+										String var_vidserver = stats[3];
+										int var_index 		 = -1;
+										// Get the variables' values and save them
+										var_index = var_vidlink.indexOf('"');
+										vidlink   = var_vidlink.substring(var_index+1,
+														var_vidlink.indexOf('"', var_index+1));
+										var_index = var_vidserver.indexOf('"');
+										vidserver = var_vidserver.substring(var_index+1,
+														var_vidserver.indexOf('"', var_index+1));
+										// Check if the variables are not null
+										if(vidlink != null && vidserver != null) break;
+									}
+								}
 							}
 						}
 						
 						if(vidlink != null && vidserver != null) {
 							JSONObject data = new JSONObject(
 								Utils.requestGET(URL_GET_MD5_DATA, UserAgent.MOZILLA,
-									new String[] { "server", "link", "at", "adb", "b", "vid" },
+									new String[] { "server_1", "link_1", "at", "adb", "b", "vid" },
 									new String[] { vidserver, vidlink, atID, "false", "1", videoID },
 								result.cookies).result);
 							String html5_file = data.getString("html5_file");
@@ -191,7 +237,7 @@ public class ServerHqqTV implements Server {
 								String part = addr[i];
 								if(i != 0) sb.append('/');
 								if(i == 0 || i == l-1) {
-									sb.append(Utils.base64Decode(part));
+									sb.append(part);
 								} else if(part.startsWith("false")) {
 									sb.append("0/")
 									  .append(part.substring(5));
@@ -200,7 +246,7 @@ public class ServerHqqTV implements Server {
 								}
 							}
 							String videoURL = sb.toString();
-							long fileSize 	= Utils.getFileSizeURL(videoURL, UserAgent.IPHONE);
+							long fileSize 	= HqqTVUtils.sizeOf_m3u8(videoURL);
 							VideoSource vs  = new VideoSource(this, new URL(videoURL),
 								VideoFormat.M3U8, null, fileSize, UserAgent.IPHONE,
 								VideoQuality.QUALITY_UNKNOWN, null);
@@ -208,6 +254,7 @@ public class ServerHqqTV implements Server {
 						}
 					}
 				} catch(Exception ex) {
+					ex.printStackTrace();
 				}
 			}
 		}

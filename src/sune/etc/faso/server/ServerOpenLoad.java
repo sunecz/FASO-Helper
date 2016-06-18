@@ -77,42 +77,71 @@ public class ServerOpenLoad implements Server {
 								String string  = value.substring(4);
 								int eqsign	   = string.indexOf('=');
 								String varname = string.substring(0, eqsign).trim();
-								videoURL 	   = (String) JavaScript.execute(value + varname);
-								// Get an exact file URL from the gotten stream URL
-								try {
-									// Openload.co uses HTTPS protocol
-									HttpsURLConnection hcon =
-										(HttpsURLConnection) new URL(videoURL).openConnection();
-									hcon.setInstanceFollowRedirects(false);
-									hcon.connect();
-									
-									// Catch the redirection
-									if(hcon.getResponseCode() == 302) {
-										// Get the redirection URL
-										videoURL = hcon.getHeaderField("Location");
+								// The variable could also be an array, check the variable's name
+								boolean varArray = false;
+								for(int i = 0, l = varname.length(); i < l; ++i) {
+									if((varname.charAt(i) == '[')) {
+										varname  = varname.substring(0, i);
+										varArray = true;
+										break;
 									}
-									
-									// Get all subtitles
-									List<Subtitles> listSubs = new ArrayList<>();
-									for(Element track : diframe.select("track[src]")) {
-										if(track.attr("kind").equals("captions")) {
-											String surl = track.attr("src");
-											String lang = track.attr("label");
-											listSubs.add(new Subtitles(surl, lang));
+								}
+								String execute = value + varname;
+								// If the variable is an array, save the result into
+								// a variable not an array, so that the future value
+								// can be casted into a string
+								if(varArray) {
+									execute = "var " + varname + "=" +
+											  execute.substring(
+													  execute.indexOf('=') + 1);
+								}
+								Object vobject;
+								if((vobject = JavaScript.execute(execute)) != null) {
+									// Test whether the variable can be casted to a string
+									if(vobject.getClass().isAssignableFrom(String.class)) {
+										// Cast the video URL to a string, so it can be read
+										videoURL = (String) vobject;
+									} else continue;
+									// Get an exact file URL from the gotten stream URL
+									try {
+										// Openload.co uses HTTPS protocol
+										HttpsURLConnection hcon =
+											(HttpsURLConnection) new URL(videoURL).openConnection();
+										hcon.setInstanceFollowRedirects(false);
+										hcon.connect();
+										
+										// Catch the redirection
+										if(hcon.getResponseCode() == 302) {
+											// Get the redirection URL
+											videoURL = hcon.getHeaderField("Location");
+											// Check if the video URL is not an URL for the video
+											// with pigeons (aka video that informs people that the
+											// hotlinking is not allowed)
+											if(videoURL.contains("/Komp+1.mp4"))
+												continue;
 										}
+										
+										// Get all subtitles
+										List<Subtitles> listSubs = new ArrayList<>();
+										for(Element track : diframe.select("track[src]")) {
+											if(track.attr("kind").equals("captions")) {
+												String surl = track.attr("src");
+												String lang = track.attr("label");
+												listSubs.add(new Subtitles(surl, lang));
+											}
+										}
+										
+										Subtitles[] subs = listSubs.toArray(new Subtitles[listSubs.size()]);
+										if(subs.length == 0) subs = null;
+										long fileSize  	 = Utils.getFileSizeURL(videoURL);
+										VideoSource vs 	 = new VideoSource(this, new URL(videoURL),
+											VideoFormat.MP4, null, fileSize, null,
+											VideoQuality.QUALITY_UNKNOWN, subs);
+										sources.add(vs);
+									} catch(Exception ex) {
 									}
-									
-									Subtitles[] subs = listSubs.toArray(new Subtitles[listSubs.size()]);
-									if(subs.length == 0) subs = null;
-									long fileSize  	 = Utils.getFileSizeURL(videoURL);
-									VideoSource vs 	 = new VideoSource(this, new URL(videoURL),
-										VideoFormat.MP4, null, fileSize, null,
-										VideoQuality.QUALITY_UNKNOWN, subs);
-									sources.add(vs);
-								} catch(Exception ex) {
 								}
 							}
-							break;
 						}
 					}
 				}
