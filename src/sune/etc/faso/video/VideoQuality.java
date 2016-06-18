@@ -15,7 +15,7 @@ public enum VideoQuality {
 	QUALITY_1080p,
 	QUALITY_2160p;
 	
-	private static final String PATTERN_PROGRESSIVE_SCAN = "^(\\d+)p$";
+	private static final String PATTERN_PROGRESSIVE_SCAN = "^(\\d+)p?$";
 	private final int value;
 	private VideoQuality() {
 		int val = -1;
@@ -29,6 +29,10 @@ public enum VideoQuality {
 	public static final VideoQuality get(String quality) {
 		if(quality.equalsIgnoreCase("sd")) return QUALITY_480p;
 		if(quality.equalsIgnoreCase("hd")) return QUALITY_720p;
+		// Special cases for quality names (e.g. Low, Medium, High, ...)
+		if(quality.equalsIgnoreCase("low"))    return QUALITY_240p;
+		if(quality.equalsIgnoreCase("middle")) return QUALITY_480p;
+		if(quality.equalsIgnoreCase("high"))   return QUALITY_720p;
 		Pattern p = Pattern.compile(PATTERN_PROGRESSIVE_SCAN);
 		Matcher m = p.matcher(quality);
 		if(m.matches()) {

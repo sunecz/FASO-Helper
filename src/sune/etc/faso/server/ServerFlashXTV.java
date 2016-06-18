@@ -26,7 +26,7 @@ public class ServerFlashXTV implements Server {
 	private static final String JWPLAYER_SETUP_TEXT;
 	
 	static {
-		REGEX_IFRAME_URL 	= "^http://(?:www\\.)?flashx\\.tv/embed-(.*?)(?:-(?:.*?))?\\.html$";
+		REGEX_IFRAME_URL 	= "^https?://(?:www\\.)?flashx\\.tv/embed-(.*?)(?:-(?:.*?))?\\.html$";
 		JWPLAYER_SETUP_TEXT = "jwplayer(\"vplayer\").setup(";
 	}
 	
