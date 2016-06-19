@@ -15,6 +15,7 @@ FASO-Helper supports getting video links from few servers that can be found on t
 * AnyFiles (https://anyfiles.pl/)
 * OpenLoad (https://openload.co/)
 * LetWatch (http://letwatch.us/)
+* AllVid (http://allvid.ch/)
 
 and also supports downloading of few video formats:
 
@@ -30,10 +31,10 @@ This library uses 3rd-party libraries:
 * jsoup (HTML Parser; version: 1.9.2; https://jsoup.org/)
 
 And also uses not 3rd-party libraries:
-* ssdf-reader (SSDF Reader; version 1.1; https://github.com/sunecz/SSDF-Reader)
-* jd-utils (Java Downloader Utils; version: 1.1)
+* ssdf2 (SSDF Reader; version 2.0; https://github.com/sunecz/SSDF2)
+* jd-utils (Java Downloader Utils; version: 1.2)
 * jd-mp4 (Java Downloader for MP4 files; version: 1.0)
-* jd-m3u8 (Java Downloader for M3U8 files; version: 1.2)
+* jd-m3u8 (Java Downloader for M3U8 files; version: 1.3)
 
 ## License
 MIT (https://github.com/sunecz/FASO-Helper/blob/master/license.md)
