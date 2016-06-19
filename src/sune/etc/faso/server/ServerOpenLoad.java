@@ -33,7 +33,7 @@ public class ServerOpenLoad implements Server {
 	}
 	
 	@Override
-	public VideoSource[] getVideoSource(Document document) {
+	public VideoSource[] getVideoSources(Document document) {
 		List<VideoSource> sources = new ArrayList<>();
 		List<String> list 		  = new ArrayList<>();
 		// Test all iframes with src attribute
@@ -131,12 +131,13 @@ public class ServerOpenLoad implements Server {
 											}
 										}
 										
-										Subtitles[] subs = listSubs.toArray(new Subtitles[listSubs.size()]);
-										if(subs.length == 0) subs = null;
-										long fileSize  	 = Utils.getFileSizeURL(videoURL);
-										VideoSource vs 	 = new VideoSource(this, new URL(videoURL),
-											VideoFormat.MP4, null, fileSize, null,
-											VideoQuality.QUALITY_UNKNOWN, subs);
+										Subtitles[] subs = listSubs.isEmpty() ? null :
+											listSubs.toArray(new Subtitles[listSubs.size()]);
+										long fileSize  	 = Utils.getFileSize_Type(videoURL);
+										VideoSource vs 	 = new VideoSource(
+											this, new URL(videoURL), VideoFormat.get(videoURL),
+											null, fileSize, null, VideoQuality.QUALITY_UNKNOWN,
+											subs);
 										sources.add(vs);
 									} catch(Exception ex) {
 									}

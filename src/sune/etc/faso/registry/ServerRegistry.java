@@ -16,7 +16,7 @@ public class ServerRegistry extends ClassRegistry<Server> {
 		List<Server> list = new LinkedList<>();
 		for(String name : names()) {
 			Server server 		  = instance(name);
-			VideoSource[] sources = server.getVideoSource(document);
+			VideoSource[] sources = server.getVideoSources(document);
 			if(sources != null && sources.length > 0) {
 				list.add(server);
 			}
@@ -28,7 +28,7 @@ public class ServerRegistry extends ClassRegistry<Server> {
 		List<VideoSource> list = new LinkedList<>();
 		for(String name : names()) {
 			Server server 		  = instance(name);
-			VideoSource[] sources = server.getVideoSource(document);
+			VideoSource[] sources = server.getVideoSources(document);
 			if(sources != null && sources.length > 0) {
 				for(VideoSource source : sources)
 					list.add(source);

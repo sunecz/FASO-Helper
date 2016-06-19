@@ -23,6 +23,7 @@ import sune.etc.faso.search.SearchEngine;
 import sune.etc.faso.search.SearchOptions;
 import sune.etc.faso.search.SearchResults;
 import sune.etc.faso.server.Server;
+import sune.etc.faso.server.ServerAllVid;
 import sune.etc.faso.server.ServerAnyFiles;
 import sune.etc.faso.server.ServerExashare;
 import sune.etc.faso.server.ServerFlashXTV;
@@ -63,6 +64,7 @@ public final class FASO {
 		SERVERS.register("anyfiles", ServerAnyFiles.class);
 		SERVERS.register("openload", ServerOpenLoad.class);
 		SERVERS.register("letwatch", ServerLetWatch.class);
+		SERVERS.register("allvid", 	 ServerAllVid.class);
 		// Register all the default downloaders
 		DOWNLOADERS.register("mp4",  DownloaderMP4.class);
 		DOWNLOADERS.register("m3u8", DownloaderM3U8.class);

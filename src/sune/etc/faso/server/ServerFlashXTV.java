@@ -3,7 +3,6 @@ package sune.etc.faso.server;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,8 +16,10 @@ import sune.etc.faso.util.Utils;
 import sune.etc.faso.video.VideoFormat;
 import sune.etc.faso.video.VideoQuality;
 import sune.etc.faso.video.VideoSource;
-import sune.ssdf.SSDArray;
-import sune.ssdf.SSDFCore;
+import sune.util.ssdf2.SSDCollection;
+import sune.util.ssdf2.SSDF;
+import sune.util.ssdf2.SSDNode;
+import sune.util.ssdf2.SSDObject;
 
 public class ServerFlashXTV implements Server {
 	
@@ -74,7 +75,7 @@ public class ServerFlashXTV implements Server {
 	}
 	
 	@Override
-	public VideoSource[] getVideoSource(Document document) {
+	public VideoSource[] getVideoSources(Document document) {
 		List<VideoSource> sources = new ArrayList<>();
 		List<String> list 		  = new ArrayList<>();
 		// Test iframes with the correct source url
@@ -97,33 +98,40 @@ public class ServerFlashXTV implements Server {
 					String jsVideo 	  = videoJS(doc);
 					String result 	  = (String) JavaScript.execute(jsVideo);
 					String playerData = playerSetupData(result);
-					SSDArray array 	  = new SSDFCore(playerData).getArray();
+					SSDCollection arr = SSDF.read(playerData);
 					
 					List<Subtitles> listSubs = new ArrayList<>();
-					if(array.hasArray("tracks")) {
-						SSDArray arrTracks = array.getArray("tracks");
-						Map<String, Map<String, String>> tracks = Utils.convert(arrTracks);
-						for(Map<String, String> map : tracks.values()) {
-							if(map.get("kind").equals("captions")) {
-								String surl = map.get("file");
-								String lang = map.get("label");
-								listSubs.add(new Subtitles(surl, lang));
+					if(arr.hasCollection("tracks")) {
+						for(SSDNode node : arr.getCollection("tracks")) {
+							if(node.isCollection()) {
+								SSDCollection coll = (SSDCollection) node;
+								SSDObject 	  kind = coll.getObject("kind");
+								if(kind != null && kind.stringValue().equals("captions")) {
+									String surl = coll.getObject("file").stringValue();
+									String lang = coll.getObject("label").stringValue();
+									listSubs.add(new Subtitles(surl, lang));
+								}
 							}
 						}
 					}
 					
-					if(array.hasArray("sources")) {
-						SSDArray arrSources = array.getArray("sources");
-						Subtitles[] subs = listSubs.toArray(new Subtitles[listSubs.size()]);
-						if(subs.length == 0) subs = null;
-						Map<String, Map<String, String>> arrsrcs = Utils.convert(arrSources);
-						for(Map<String, String> map : arrsrcs.values()) {
-							String furl    = map.get("file");
-							String quality = map.get("label");
-							long fileSize  = Utils.getFileSizeURL(furl);
-							VideoSource vs = new VideoSource(this, new URL(furl),
-								VideoFormat.MP4, null, fileSize, null, VideoQuality.get(quality), subs);
-							sources.add(vs);
+					if(arr.hasCollection("sources")) {
+						Subtitles[] subs = listSubs.isEmpty() ? null :
+							listSubs.toArray(new Subtitles[listSubs.size()]);
+						for(SSDNode node : arr.getCollection("sources")) {
+							if(node.isCollection()) {
+								SSDCollection coll = (SSDCollection) node;
+								String furl    = coll.getObject("file").stringValue();
+								String quality = null;
+								if(coll.hasObject("label"))
+									quality = coll.getObject("label").stringValue();
+								long fileSize  = Utils.getFileSize_Type(furl);
+								VideoSource vs = new VideoSource(
+									this, new URL(furl), VideoFormat.get(furl),
+									null, fileSize, null, VideoQuality.get(quality),
+									subs);
+								sources.add(vs);
+							}
 						}
 					}
 				} catch(Exception ex) {

@@ -3,7 +3,6 @@ package sune.etc.faso.util;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -28,8 +27,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import sune.ssdf.SSDArray;
-import sune.ssdf.SSDObject;
+import sune.etc.faso.video.VideoFormat;
 
 public class Utils {
 	
@@ -283,7 +281,7 @@ public class Utils {
 				while((read = is.read(buffer)) != -1) {
 					sb.append(new String(buffer, 0, read, CHARSET));
 				}
-			} catch(IOException ex) {
+			} catch(Exception ex) {
 			}
 			StringBuilder cookies = new StringBuilder();
 			for(String string : COOKIE_MANAGER.get(new URI(url),
@@ -376,6 +374,14 @@ public class Utils {
 		return null;
 	}
 	
+	private static boolean FILE_SIZE_M3U8 = true;
+	public static final void set_fileSizeOfM3U8(boolean value) {
+		FILE_SIZE_M3U8 = value;
+	}
+	public static final boolean get_fileSizeOfM3U8() {
+		return FILE_SIZE_M3U8;
+	}
+	
 	public static final long getFileSizeURL(String url) {
 		return getFileSizeURL(url, UserAgent.MOZILLA, (Map<String, String>) null);
 	}
@@ -406,6 +412,66 @@ public class Utils {
 		} catch(Exception ex) {
 		}
 		return -1;
+	}
+	
+	public static final long getFileSizeURL_M3U8(String url) {
+		return getFileSizeURL_M3U8(url, UserAgent.MOZILLA, (Map<String, String>) null);
+	}
+	
+	public static final long getFileSizeURL_M3U8(String url, String headers) {
+		return getFileSizeURL_M3U8(url, UserAgent.MOZILLA, headers(headers));
+	}
+	
+	public static final long getFileSizeURL_M3U8(String url, String userAgent,
+			String headers) {
+		return getFileSizeURL_M3U8(url, userAgent, headers(headers));
+	}
+	
+	public static final long getFileSizeURL_M3U8(String url, String userAgent,
+			Map<String, String> headers) {
+		String content = quickGETRequest(url, userAgent);
+		String baseurl = url.substring(0, url.lastIndexOf('/')+1);
+		String[] lines = content.split("\n");
+		long totalSize = 0;
+		for(int i = 0, l = lines.length; i < l; ++i) {
+			String line;
+			if((line = lines[i]).startsWith("#"))
+				continue;
+			String fileurl = baseurl + line;
+			if(VideoFormat.get(fileurl) == VideoFormat.M3U8) {
+				long size = getFileSizeURL_M3U8(fileurl, userAgent,
+					(Map<String, String>) null);
+				if(size >= 0) totalSize += size;
+			} else {
+				long size = getFileSizeURL(fileurl, userAgent,
+					(Map<String, String>) null);
+				if(size >= 0) totalSize += size;
+			}
+		}
+		return totalSize;
+	}
+	
+	public static final long getFileSize_Type(String url) {
+		return getFileSize_Type(url, UserAgent.MOZILLA, (Map<String, String>) null);
+	}
+	
+	public static final long getFileSize_Type(String url, String headers) {
+		return getFileSize_Type(url, UserAgent.MOZILLA, headers(headers));
+	}
+	
+	public static final long getFileSize_Type(String url, String userAgent,
+			String headers) {
+		return getFileSize_Type(url, userAgent, headers(headers));
+	}
+	
+	public static final long getFileSize_Type(String url, String userAgent,
+			Map<String, String> headers) {
+		switch(VideoFormat.get(url)) {
+			case M3U8: return FILE_SIZE_M3U8 ?
+								getFileSizeURL_M3U8(url, userAgent, headers) :
+								getFileSizeURL(url, userAgent, headers);
+			default:   return getFileSizeURL(url, userAgent, headers);
+		}
 	}
 	
 	public static final Map<String, String> headers(String data) {
@@ -582,28 +648,6 @@ public class Utils {
 		for(int i = 0; i < l; ++i)
 			b[i] = a[i];
 		return b;
-	}
-	
-	// Converts a SSDArray to formatted 2-dimensional map of strings
-	public static final Map<String, Map<String, String>> convert(SSDArray array) {
-		Map<String, Map<String, String>> map = new LinkedHashMap<>();
-		for(Entry<String, SSDObject> entry : array.getAllObjects().entrySet()) {
-			String name 	= entry.getKey();
-			SSDObject value = entry.getValue();
-			int indexDot    = name.indexOf('.');
-			String mapName  = name.substring(0, indexDot);
-			String valName  = name.substring(indexDot+1);
-			// This data conversion is allowed for only 2-dimensional data
-			if(valName.indexOf('.') == -1) {
-				Map<String, String> map2;
-				if((map2 = map.get(mapName)) == null) {
-					map2 = new LinkedHashMap<>();
-					map.put(mapName, map2);
-				}
-				map2.put(valName, value.stringValue());
-			}
-		}
-		return map;
 	}
 	
 	// Provides realtively fast method for converting a string into an integer
