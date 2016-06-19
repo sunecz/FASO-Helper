@@ -27,12 +27,16 @@ public enum VideoQuality {
 	}
 	
 	public static final VideoQuality get(String quality) {
-		if(quality.equalsIgnoreCase("sd")) return QUALITY_480p;
-		if(quality.equalsIgnoreCase("hd")) return QUALITY_720p;
+		// If the quality is null, it is unknown; no default quality
+		if(quality == null || quality.isEmpty()) return QUALITY_UNKNOWN;
+		// Special cases for quality names (e.g. SD, HD, ...)
+		if(quality.equalsIgnoreCase("sd")) 		 return QUALITY_480p;
+		if(quality.equalsIgnoreCase("hd")) 		 return QUALITY_720p;
 		// Special cases for quality names (e.g. Low, Medium, High, ...)
-		if(quality.equalsIgnoreCase("low"))    return QUALITY_240p;
-		if(quality.equalsIgnoreCase("middle")) return QUALITY_480p;
-		if(quality.equalsIgnoreCase("high"))   return QUALITY_720p;
+		if(quality.equalsIgnoreCase("low"))    	 return QUALITY_240p;
+		if(quality.equalsIgnoreCase("middle")) 	 return QUALITY_480p;
+		if(quality.equalsIgnoreCase("high"))   	 return QUALITY_720p;
+		// All other not special cases are handled using RegExp
 		Pattern p = Pattern.compile(PATTERN_PROGRESSIVE_SCAN);
 		Matcher m = p.matcher(quality);
 		if(m.matches()) {

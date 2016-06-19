@@ -32,7 +32,7 @@ public class ServerAnyFiles implements Server {
 	}
 	
 	@Override
-	public VideoSource[] getVideoSource(Document document) {
+	public VideoSource[] getVideoSources(Document document) {
 		List<VideoSource> sources = new ArrayList<>();
 		List<String> list 		  = new ArrayList<>();
 		// Test iframes with the correct source url
@@ -101,9 +101,10 @@ public class ServerAnyFiles implements Server {
 						int index1 = svalue.indexOf("\\", index0+5);
 						if(index0 > -1 && index1 > -1) {
 							String source  = svalue.substring(index0+5, index1);
-							long fileSize  = Utils.getFileSizeURL(source);
-							VideoSource vs = new VideoSource(this, new URL(source),
-								VideoFormat.MP4, null, fileSize, null, null, null);
+							long fileSize  = Utils.getFileSize_Type(source);
+							VideoSource vs = new VideoSource(
+								this, new URL(source), VideoFormat.get(source),
+								null, fileSize, null, null, null);
 							sources.add(vs);
 						}
 					}

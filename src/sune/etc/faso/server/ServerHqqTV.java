@@ -3,7 +3,6 @@ package sune.etc.faso.server;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,22 +38,6 @@ public class ServerHqqTV implements Server {
 			}
 			return t;
 		}
-		
-		public static final long sizeOf_m3u8(String url) {
-			String content = Utils.quickGETRequest(url, UserAgent.IPHONE);
-			String baseurl = url.substring(0, url.lastIndexOf('/')+1);
-			String[] lines = content.split("\n");
-			long totalSize = 0;
-			for(int i = 0, l = lines.length; i < l; ++i) {
-				String line;
-				if((line = lines[i]).startsWith("#"))
-					continue;
-				String fileurl = baseurl + line;
-				totalSize 	  += Utils.getFileSizeURL(fileurl, UserAgent.IPHONE,
-					(Map<String, String>) null);
-			}
-			return totalSize;
-		}
 	}
 	
 	private static final String URL_EMBED_PLAYER;
@@ -78,7 +61,7 @@ public class ServerHqqTV implements Server {
 	}
 	
 	@Override
-	public final VideoSource[] getVideoSource(Document document) {
+	public final VideoSource[] getVideoSources(Document document) {
 		List<VideoSource> sources = new ArrayList<>();
 		List<String> list 		  = new ArrayList<>();
 		// Test iframes with the correct source url
@@ -246,10 +229,11 @@ public class ServerHqqTV implements Server {
 								}
 							}
 							String videoURL = sb.toString();
-							long fileSize 	= HqqTVUtils.sizeOf_m3u8(videoURL);
-							VideoSource vs  = new VideoSource(this, new URL(videoURL),
-								VideoFormat.M3U8, null, fileSize, UserAgent.IPHONE,
-								VideoQuality.QUALITY_UNKNOWN, null);
+							long fileSize 	= Utils.getFileSize_Type(videoURL, UserAgent.IPHONE);
+							VideoSource vs  = new VideoSource(
+								this, new URL(videoURL), VideoFormat.get(videoURL),
+								null, fileSize, UserAgent.IPHONE, VideoQuality.QUALITY_UNKNOWN,
+								null);
 							sources.add(vs);
 						}
 					}
