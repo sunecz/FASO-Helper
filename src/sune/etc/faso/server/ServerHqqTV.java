@@ -109,8 +109,6 @@ public class ServerHqqTV implements Server {
 				}
 			}
 		}
-		// The video ID should not be null right now so we try to get the video file url.
-		// If the video ID is null then we know that there is no Hqq.tv source
 		if(!list.isEmpty()) {
 			for(String videoID : list) {
 				try {
@@ -238,7 +236,6 @@ public class ServerHqqTV implements Server {
 						}
 					}
 				} catch(Exception ex) {
-					ex.printStackTrace();
 				}
 			}
 		}
