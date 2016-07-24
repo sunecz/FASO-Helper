@@ -16,6 +16,9 @@ FASO-Helper supports getting video links from few servers that can be found on t
 * OpenLoad (https://openload.co/)
 * LetWatch (http://letwatch.us/)
 * AllVid (http://allvid.ch/)
+* AllMyVideos (http://allmyvideos.net/)
+* Veoh (http://veoh.com/)
+* VodLocker (http://vodlocker.com/)
 
 and also supports downloading of few video formats:
 
