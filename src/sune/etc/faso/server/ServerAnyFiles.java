@@ -13,6 +13,7 @@ import org.jsoup.select.Elements;
 import sune.etc.faso.util.UserAgent;
 import sune.etc.faso.util.Utils;
 import sune.etc.faso.video.VideoFormat;
+import sune.etc.faso.video.VideoQuality;
 import sune.etc.faso.video.VideoSource;
 
 public class ServerAnyFiles implements Server {
@@ -104,7 +105,7 @@ public class ServerAnyFiles implements Server {
 							long fileSize  = Utils.getFileSize_Type(source);
 							VideoSource vs = new VideoSource(
 								this, new URL(source), VideoFormat.get(source),
-								null, fileSize, null, null, null);
+								null, fileSize, null, VideoQuality.QUALITY_UNKNOWN, null);
 							sources.add(vs);
 						}
 					}
