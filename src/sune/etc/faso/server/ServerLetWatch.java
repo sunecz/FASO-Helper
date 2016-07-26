@@ -27,7 +27,7 @@ public class ServerLetWatch implements Server {
 	private static final String JWPLAYER_SETUP_TEXT;
 	
 	static {
-		REGEX_IFRAME_URL 	= "^https?://(?:www\\.)?letwatch\\.us/embed-(.*?)(?:-(?:.*?))?\\.html$";
+		REGEX_IFRAME_URL 	= "^https?://(?:www\\.)?letwatch\\.us/embed-(.*?)(?:-(?:.*?))?\\.html(?:\\?.*?)?(?:#.*?)?$";
 		JWPLAYER_SETUP_TEXT = "jwplayer(\"vplayer\").setup(";
 	}
 	

@@ -27,7 +27,7 @@ public class ServerAllVid implements Server {
 	private static final String JWPLAYER_SETUP_TEXT;
 	
 	static {
-		REGEX_IFRAME_URL 	= "^https?://(?:www\\.)?allvid\\.ch/embed-(.*?).html\\?(\\d+)$";
+		REGEX_IFRAME_URL 	= "^https?://(?:www\\.)?allvid\\.ch/embed-(.*?).html\\?(\\d+)(?:#.*?)?$";
 		JWPLAYER_SETUP_TEXT = "jwplayer(\"vplayer\").setup(";
 	}
 	

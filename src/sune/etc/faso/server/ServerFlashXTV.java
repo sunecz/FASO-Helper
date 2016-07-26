@@ -27,12 +27,12 @@ public class ServerFlashXTV implements Server {
 	private static final String JWPLAYER_SETUP_TEXT;
 	
 	static {
-		REGEX_IFRAME_URL 	= "^https?://(?:www\\.)?flashx\\.tv/embed-(.*?)(?:-(?:.*?))?\\.html$";
+		REGEX_IFRAME_URL 	= "^https?://(?:www\\.)?flashx\\.tv/embed-(.*?)(?:-(?:.*?))?\\.html(?:\\?.*?)?(?:#.*?)?$";
 		JWPLAYER_SETUP_TEXT = "jwplayer(\"vplayer\").setup(";
 	}
 	
 	static String videoPlayLink(String videoID) {
-		return "http://www.flash-x.tv/playit-" + videoID + ".html";
+		return "http://www.flash-x.tv/playvid-" + videoID + ".html";
 	}
 	
 	static String videoJS(Document doc) {

@@ -16,6 +16,7 @@ import sune.etc.faso.video.VideoQuality;
 import sune.etc.faso.video.VideoSource;
 import sune.util.ssdf2.SSDCollection;
 import sune.util.ssdf2.SSDF;
+import sune.util.ssdf2.SSDFilter;
 import sune.util.ssdf2.SSDNode;
 
 public class ServerAllMyVideos implements Server {
@@ -25,7 +26,7 @@ public class ServerAllMyVideos implements Server {
 	private static final String JWPLAYER_SETUP_END;
 	
 	static {
-		REGEX_IFRAME_URL 	= "^https?://(?:www\\.)?allmyvideos\\.net/embed-(.*?)\\.html$";
+		REGEX_IFRAME_URL 	= "^https?://(?:www\\.)?allmyvideos\\.net/embed-(.*?)\\.html(?:\\?.*?)?(?:#.*?)?$";
 		JWPLAYER_SETUP_TEXT = "jwplayer('flvplayer').setup(jwConfig(";
 		JWPLAYER_SETUP_END	= "));";
 	}
@@ -83,31 +84,24 @@ public class ServerAllMyVideos implements Server {
 					SSDCollection arr = SSDF.readJSON(playerData);
 					// Sources are contained in playlist array
 					if(arr.hasCollection("playlist")) {
-						for(SSDNode item : arr.getCollection("playlist")) {
-							if(item.isCollection()) {
-								SSDCollection icol = (SSDCollection) item;
-								// Because of bug in SSDF2 names are not converted correctly
-								// from JSON form, so the quotes are still preserved.
-								// However, we can still read it again using SSDF static method.
-								icol = SSDF.readJSON(icol.toString());
-								if(icol.hasCollection("sources")) {
-									for(SSDNode node : icol.getCollection("sources")) {
-										if(node.isCollection()) {
-											SSDCollection coll = (SSDCollection) node;
-											// Fix for JSON names (again)
-											coll = SSDF.readJSON(coll.toString());
-											String furl    = coll.getObject("file").stringValue();
-											String quality = null;
-											if(coll.hasObject("label"))
-												quality = coll.getObject("label").stringValue();
-											long fileSize  = Utils.getFileSize_Type(furl);
-											VideoSource vs = new VideoSource(
-												this, new URL(furl), VideoFormat.get(furl),
-												null, fileSize, null, VideoQuality.get(quality),
-												null);
-											sources.add(vs);
-										}
-									}
+						for(SSDNode item : arr.getCollection("playlist")
+											  .filter(SSDFilter.ONLY_COLLECTIONS)) {
+							SSDCollection icol = (SSDCollection) item;
+							if(icol.hasCollection("sources")) {
+								for(SSDNode node : icol.getCollection("sources")
+													   .filter(SSDFilter.ONLY_COLLECTIONS)) {
+									SSDCollection coll = (SSDCollection) node;
+									// Add the video source to the list
+									String furl    = coll.getObject("file").stringValue();
+									String quality = null;
+									if(coll.hasObject("label"))
+										quality = coll.getObject("label").stringValue();
+									long fileSize  = Utils.getFileSize_Type(furl);
+									VideoSource vs = new VideoSource(
+										this, new URL(furl), VideoFormat.get(furl),
+										null, fileSize, null, VideoQuality.get(quality),
+										null);
+									sources.add(vs);
 								}
 							}
 						}

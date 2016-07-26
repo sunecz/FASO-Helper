@@ -1,5 +1,6 @@
 package sune.etc.faso.server;
 
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.jsoup.select.Elements;
 
 import sune.etc.faso.subtitles.Subtitles;
 import sune.etc.faso.util.JavaScript;
+import sune.etc.faso.util.UserAgent;
 import sune.etc.faso.util.Utils;
 import sune.etc.faso.video.VideoFormat;
 import sune.etc.faso.video.VideoQuality;
@@ -25,7 +27,7 @@ public class ServerOpenLoad implements Server {
 	private static final String AAENCODE_PREFIX;
 	
 	static {
-		REGEX_EMBED_URL = "^https?://(?:www\\.)?openload\\.(?:co|io)/embed/(.*?)/$";
+		REGEX_EMBED_URL = "^https?://(?:www\\.)?openload\\.(?:co|io)/embed/(.*?)/(?:\\?.*?)?(?:#.*?)?$";
 		AAENCODE_PREFIX	= "\uff9f\u03c9\uff9f\uff89";
 	}
 	
@@ -102,46 +104,60 @@ public class ServerOpenLoad implements Server {
 										// Cast the video URL to a string, so it can be read
 										videoURL = (String) vobject;
 									} else continue;
-									// Get an exact file URL from the gotten stream URL
-									try {
-										// Openload.co uses HTTPS protocol
-										HttpsURLConnection hcon =
-											(HttpsURLConnection) new URL(videoURL).openConnection();
-										hcon.setInstanceFollowRedirects(false);
-										hcon.connect();
-										
-										// Catch the redirection
-										if(hcon.getResponseCode() == 302) {
-											// Get the redirection URL
-											videoURL = hcon.getHeaderField("Location");
-											// Check if the video URL is not an URL for the video
-											// with pigeons (aka video that informs people that the
-											// hotlinking is not allowed)
-											if(videoURL.contains("/Komp+1.mp4"))
-												continue;
-										}
-										
-										// Get all subtitles
-										List<Subtitles> listSubs = new ArrayList<>();
-										for(Element track : diframe.select("track[src]")) {
-											if(track.attr("kind").equals("captions")) {
-												String surl = track.attr("src");
-												String lang = track.attr("label");
-												listSubs.add(new Subtitles(surl, lang));
-											}
-										}
-										
-										Subtitles[] subs = listSubs.isEmpty() ? null :
-											listSubs.toArray(new Subtitles[listSubs.size()]);
-										long fileSize  	 = Utils.getFileSize_Type(videoURL);
-										VideoSource vs 	 = new VideoSource(
-											this, new URL(videoURL), VideoFormat.get(videoURL),
-											null, fileSize, null, VideoQuality.QUALITY_UNKNOWN,
-											subs);
-										sources.add(vs);
-									} catch(Exception ex) {
+								}
+							}
+							// Check the video URL
+							if((videoURL == null)) continue;
+							if(!videoURL.startsWith("http") ||
+							   !videoURL.startsWith("https")) {
+								// Fix the URL if needed
+								if((videoURL.startsWith("//")))
+									videoURL = "https:" + videoURL;
+							}
+							// Get an exact file URL from the gotten stream URL
+							try {
+								// Get the HTTP Connection
+								HttpURLConnection hcon
+									= (HttpURLConnection) new URL(videoURL).openConnection();
+								// Cast the object to the right type if HTTPS is used
+								if(videoURL.startsWith("https"))
+									hcon = (HttpsURLConnection) hcon;
+								// HTTP Connection configuration
+								hcon.setInstanceFollowRedirects(false);
+								// Also set the correct User-Agent or HTTP 403 is returned
+								hcon.addRequestProperty("User-Agent", UserAgent.MOZILLA2);
+								hcon.connect();
+								
+								// Catch the redirection
+								if(hcon.getResponseCode() == 302) {
+									// Get the redirection URL
+									videoURL = hcon.getHeaderField("Location");
+									// Check if the video URL is not an URL for the video
+									// with pigeons (aka video that informs people that the
+									// hotlinking is not allowed)
+									if(videoURL.contains("/Komp+1.mp4"))
+										continue;
+								}
+								
+								// Get all subtitles
+								List<Subtitles> listSubs = new ArrayList<>();
+								for(Element track : diframe.select("track[src]")) {
+									if(track.attr("kind").equals("captions")) {
+										String surl = track.attr("src");
+										String lang = track.attr("label");
+										listSubs.add(new Subtitles(surl, lang));
 									}
 								}
+								
+								Subtitles[] subs = listSubs.isEmpty() ? null :
+									listSubs.toArray(new Subtitles[listSubs.size()]);
+								long fileSize  	 = Utils.getFileSize_Type(videoURL);
+								VideoSource vs 	 = new VideoSource(
+									this, new URL(videoURL), VideoFormat.get(videoURL),
+									null, fileSize, null, VideoQuality.QUALITY_UNKNOWN,
+									subs);
+								sources.add(vs);
+							} catch(Exception ex) {
 							}
 						}
 					}
