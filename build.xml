@@ -11,7 +11,6 @@
         <pathelement location="lib/jd-mp4-1.0.jar"/>
         <pathelement location="lib/jd-utils-1.2.jar"/>
         <pathelement location="lib/jsoup-1.9.2.jar"/>
-        <pathelement location="lib/org.json.jar"/>
         <pathelement location="lib/ssdf2.jar"/>
     </path>
     <target name="init">

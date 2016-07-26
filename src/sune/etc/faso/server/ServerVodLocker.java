@@ -23,7 +23,7 @@ public class ServerVodLocker implements Server {
 	private static final String JWPLAYER_SETUP_TEXT;
 	
 	static {
-		REGEX_IFRAME_URL 	= "^https?://(?:www\\.)?vodlocker\\.com/embed-(.*?)(-(.*?))?\\.html$";
+		REGEX_IFRAME_URL 	= "^https?://(?:www\\.)?vodlocker\\.com/embed-(.*?)(-(.*?))?\\.html(?:\\?.*?)?(?:#.*?)?$";
 		JWPLAYER_SETUP_TEXT = "jwplayer(\"flvplayer\").setup(";
 	}
 	

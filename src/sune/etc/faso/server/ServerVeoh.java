@@ -13,7 +13,6 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.json.JSONObject;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -22,6 +21,8 @@ import sune.etc.faso.util.Utils;
 import sune.etc.faso.video.VideoFormat;
 import sune.etc.faso.video.VideoQuality;
 import sune.etc.faso.video.VideoSource;
+import sune.util.ssdf2.SSDCollection;
+import sune.util.ssdf2.SSDF;
 
 public class ServerVeoh implements Server {
 	
@@ -29,7 +30,7 @@ public class ServerVeoh implements Server {
 	private static final String JS_VARIABLE_DATA;
 	
 	static {
-		REGEX_IFRAME_URL = "^https?://(?:www\\.)?veoh\\.com/watch/(.*?)$";
+		REGEX_IFRAME_URL = "^https?://(?:www\\.)?veoh\\.com/watch/(.*?)(?:\\?.*?)?(?:#.*?)?$";
 		JS_VARIABLE_DATA = "__watch.videoDetailsJSON";
 	}
 	
@@ -295,9 +296,8 @@ public class ServerVeoh implements Server {
 								// We are in the variable value string quotes
 								if(bq) {
 									// Escaping
-									if(c == '\\' && !esc) { esc = true;  continue; } else
-									if(esc) 			  { esc = false; }
-									if(c == cq) {
+									if(c == '\\' && !esc) { esc = true; continue; }
+									if(c == cq && !esc) {
 										// We are in the end of the variable
 										// value string quotes
 										bq = false;
@@ -306,6 +306,8 @@ public class ServerVeoh implements Server {
 									}
 									// Add any character we encouter
 									else sb.append((char) c);
+									// Escaping
+									if(esc) esc = false;
 								} else {
 									// We are not in the variable value string quotes
 									if(c == '\'' || c == '"') {
@@ -314,8 +316,8 @@ public class ServerVeoh implements Server {
 									}
 								}	
 							}
-							String jsonData = sb.toString();
-							JSONObject jobj = new JSONObject(jsonData);
+							String 		  jsonData = sb.toString();
+							SSDCollection jobj 	   = SSDF.readJSON(jsonData);
 							// Get download URL information
 							String hashPath 	 = jobj.getString("downloadUrl");
 							String hashPathToken = jobj.getString("downloadUrlToken");

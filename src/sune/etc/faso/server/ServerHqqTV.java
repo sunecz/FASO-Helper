@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -19,6 +18,8 @@ import sune.etc.faso.util.Utils.RequestResult;
 import sune.etc.faso.video.VideoFormat;
 import sune.etc.faso.video.VideoQuality;
 import sune.etc.faso.video.VideoSource;
+import sune.util.ssdf2.SSDCollection;
+import sune.util.ssdf2.SSDF;
 
 public class ServerHqqTV implements Server {
 	
@@ -52,9 +53,9 @@ public class ServerHqqTV implements Server {
 		URL_EMBED_PLAYER  = "http://hqq.tv/player/embed_player.php";
 		URL_IP_ADDRESS 	  = "http://hqq.tv/player/ip.php";
 		URL_GET_MD5_DATA  = "http://hqq.tv/player/get_md5.php";
-		REGEX_IFRAME_URL  = "^https?://(?:www\\.)?hqq\\.tv/player/embed_player\\.php\\?vid=(.*?)(&(?:.*?))?$";
-		REGEX_FORM_URL 	  = "^https?://(?:www\\.)?hqq\\.tv/player/embed_player\\.php$";
-		REGEX_SCRIPT_HASH = "^https?://(?:www\\.)?hqq\\.tv/player/hash\\.php\\?hash=(.*?)$";
+		REGEX_IFRAME_URL  = "^https?://(?:www\\.)?hqq\\.tv/player/embed_player\\.php\\?vid=(.*?)(&(?:.*?))?(?:#.*?)?$";
+		REGEX_FORM_URL 	  = "^https?://(?:www\\.)?hqq\\.tv/player/embed_player\\.php(?:\\?.*?)?(?:#.*?)?$";
+		REGEX_SCRIPT_HASH = "^https?://(?:www\\.)?hqq\\.tv/player/hash\\.php\\?hash=(.*?)(?:#.*?)?$";
 	}
 	
 	ServerHqqTV() {
@@ -124,7 +125,7 @@ public class ServerHqqTV implements Server {
 					// Get IP address of the device
 					String ip = "";
 					try {
-						ip = new JSONObject(
+						ip = SSDF.readJSON(
 								Utils.requestGET(
 									URL_IP_ADDRESS,
 									UserAgent.MOZILLA,
@@ -204,7 +205,7 @@ public class ServerHqqTV implements Server {
 						}
 						
 						if(vidlink != null && vidserver != null) {
-							JSONObject data = new JSONObject(
+							SSDCollection data = SSDF.readJSON(
 								Utils.requestGET(URL_GET_MD5_DATA, UserAgent.MOZILLA,
 									new String[] { "server_1", "link_1", "at", "adb", "b", "vid" },
 									new String[] { vidserver, vidlink, atID, "false", "1", videoID },
