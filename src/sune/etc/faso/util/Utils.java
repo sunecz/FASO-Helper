@@ -469,7 +469,7 @@ public class Utils {
 		switch(VideoFormat.get(url)) {
 			case M3U8: return FILE_SIZE_M3U8 ?
 								getFileSizeURL_M3U8(url, userAgent, headers) :
-								getFileSizeURL(url, userAgent, headers);
+								-1;
 			default:   return getFileSizeURL(url, userAgent, headers);
 		}
 	}
