@@ -34,9 +34,7 @@ This library uses 3rd-party libraries:
 
 And also uses not 3rd-party libraries:
 * ssdf2 (SSDF Reader; version 2.0u4; https://github.com/sunecz/SSDF2)
-* jd-utils (Java Downloader Utils; version: 1.2)
-* jd-mp4 (Java Downloader for MP4 files; version: 1.0)
-* jd-m3u8 (Java Downloader for M3U8 files; version: 1.3)
+* jd-utils (Java Downloader Utils; version: 1.3)
 
 ## License
 MIT (https://github.com/sunecz/FASO-Helper/blob/master/license.md)
