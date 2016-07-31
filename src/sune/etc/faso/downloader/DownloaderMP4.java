@@ -18,9 +18,15 @@ public class DownloaderMP4 implements Downloader<DownloadEventMP4> {
 	private final EventRegistry<DownloadEventMP4> eventRegistry
 		= new EventRegistry<>();
 	
+	// Downloader instance
+	private MP4Downloader downloader;
+	
 	@Override
 	public void download(VideoSource source, DownloadOptions options) {
-		MP4Downloader downloader = new MP4Downloader(
+		// If the current file is not yet downloaded, forbid continuing
+		if(downloader != null) return;
+		// Create a new instance of downloader
+		downloader = new MP4Downloader(
 			source.getURL(), options.getOutput(),
 			options.getUserAgent() == null ?
 				source.getUserAgent() == null ?
@@ -37,6 +43,7 @@ public class DownloaderMP4 implements Downloader<DownloadEventMP4> {
 			@Override
 			public void onEnd() {
 				eventRegistry.call(DownloadEventMP4.END);
+				cancel();
 			}
 			
 			@Override
@@ -46,6 +53,13 @@ public class DownloaderMP4 implements Downloader<DownloadEventMP4> {
 			}
 		};
 		downloader.start();
+	}
+
+	@Override
+	public void cancel() {
+		if((downloader != null))
+			downloader.stop();
+		downloader = null;
 	}
 	
 	@Override

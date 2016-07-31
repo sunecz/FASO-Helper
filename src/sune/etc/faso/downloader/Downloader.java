@@ -8,6 +8,7 @@ import sune.etc.faso.video.VideoSource;
 public interface Downloader<T extends IEventType> {
 	
 	public void download(VideoSource source, DownloadOptions options);
+	public void cancel();
 	public VideoFormat[] getSupportedFormats();
 	// Events and events handling
 	public EventRegistry<T> getEventRegistry();
