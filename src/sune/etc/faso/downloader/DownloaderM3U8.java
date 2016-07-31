@@ -21,9 +21,15 @@ public class DownloaderM3U8 implements Downloader<DownloadEventM3U8> {
 	private final EventRegistry<DownloadEventM3U8> eventRegistry
 		= new EventRegistry<>();
 	
+	// Downloader instance
+	private M3U8Downloader downloader;
+		
 	@Override
 	public void download(VideoSource source, DownloadOptions options) {
-		M3U8Downloader downloader = new M3U8Downloader(
+		// If the current file is not yet downloaded, forbid continuing
+		if(downloader != null) return;
+		// Create a new instance of downloader
+		downloader = new M3U8Downloader(
 			source.getURL(), options.getOutput(),
 			options.getUserAgent() == null ?
 				source.getUserAgent() == null ?
@@ -41,6 +47,7 @@ public class DownloaderM3U8 implements Downloader<DownloadEventM3U8> {
 			@Override
 			public void onEnd() {
 				eventRegistry.call(DownloadEventM3U8.END);
+				cancel();
 			}
 			
 			@Override
@@ -82,7 +89,14 @@ public class DownloaderM3U8 implements Downloader<DownloadEventM3U8> {
 		};
 		downloader.start();
 	}
-	
+
+	@Override
+	public void cancel() {
+		if((downloader != null))
+			downloader.stop();
+		downloader = null;
+	}
+		
 	@Override
 	public VideoFormat[] getSupportedFormats() {
 		return SUPPORTED_FORMATS;
