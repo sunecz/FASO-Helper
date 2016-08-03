@@ -12,43 +12,30 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import sune.etc.faso.downloader.Downloader;
-import sune.etc.faso.downloader.DownloaderFLV;
-import sune.etc.faso.downloader.DownloaderM3U8;
-import sune.etc.faso.downloader.DownloaderMP4;
-import sune.etc.faso.event.IEventType;
-import sune.etc.faso.registry.DownloaderRegistry;
-import sune.etc.faso.registry.ServerRegistry;
+import sune.etc.faso.downloader.Downloaders;
+import sune.etc.faso.provider.DefaultDownloadersProvider;
+import sune.etc.faso.provider.DefaultServersProvider;
+import sune.etc.faso.provider.DownloadersProvider;
+import sune.etc.faso.provider.ServersProvider;
 import sune.etc.faso.search.DefaultSearchEngine;
 import sune.etc.faso.search.SearchEngine;
 import sune.etc.faso.search.SearchOptions;
 import sune.etc.faso.search.SearchResults;
 import sune.etc.faso.server.Server;
-import sune.etc.faso.server.ServerAllMyVideos;
-import sune.etc.faso.server.ServerAllVid;
-import sune.etc.faso.server.ServerAnyFiles;
-import sune.etc.faso.server.ServerExashare;
-import sune.etc.faso.server.ServerFlashXTV;
-import sune.etc.faso.server.ServerHqqTV;
-import sune.etc.faso.server.ServerLetWatch;
-import sune.etc.faso.server.ServerOpenLoad;
-import sune.etc.faso.server.ServerVeoh;
-import sune.etc.faso.server.ServerVodLocker;
-import sune.etc.faso.server.ServerYouWatch;
+import sune.etc.faso.server.Servers;
 import sune.etc.faso.util.Utils;
 import sune.etc.faso.video.VideoSources;
 
 public final class FASO {
 	
-	public static final String 			   SERVER_URL;
-	public static final ServerRegistry 	   SERVERS;
-	public static final DownloaderRegistry DOWNLOADERS;
+	// Public fields
+	public static final String SERVER_URL;
 	
+	// Regular Expression fields
 	private static final String REGEX_VIDEO_PAGE_LINK;
 	private static final String REGEX_LINK_EPISODE;
-	
 	private static final String REGEX_LINK_HREF_PAGE;
 	private static final String REGEX_LINK_HREF_ITEM;
-	
 	private static final String REGEX_URL_SERIAL;
 	private static final String REGEX_URL_FILM;
 	private static final String REGEX_URL_EPISODE;
@@ -56,26 +43,9 @@ public final class FASO {
 	private static final String REGEX_URL_VIDEO_FRAME;
 	
 	static {
-		SERVER_URL 	= "http://filmy-serialy-online.tv";
-		SERVERS 	= new ServerRegistry();
-		DOWNLOADERS = new DownloaderRegistry();
-		// Register all the default servers
-		SERVERS.register("hqqtv", 	 	ServerHqqTV.class);
-		SERVERS.register("flashxtv", 	ServerFlashXTV.class);
-		SERVERS.register("youwatch", 	ServerYouWatch.class);
-		SERVERS.register("exashare", 	ServerExashare.class);
-		SERVERS.register("anyfiles", 	ServerAnyFiles.class);
-		SERVERS.register("openload", 	ServerOpenLoad.class);
-		SERVERS.register("letwatch", 	ServerLetWatch.class);
-		SERVERS.register("allvid", 	 	ServerAllVid.class);
-		SERVERS.register("allmyvideos", ServerAllMyVideos.class);
-		SERVERS.register("vodlocker", 	ServerVodLocker.class);
-		SERVERS.register("veoh", 		ServerVeoh.class);
-		// Register all the default downloaders
-		DOWNLOADERS.register("mp4",  DownloaderMP4.class);
-		DOWNLOADERS.register("m3u8", DownloaderM3U8.class);
-		DOWNLOADERS.register("flv",  DownloaderFLV.class);
-		// Set the important Regular expressions
+		// Set all the public fields
+		SERVER_URL 			  = "http://filmy-serialy-online.tv";
+		// Set all the Regular expressions fields
 		REGEX_VIDEO_PAGE_LINK = "^/video/(.*?)/watchv=(.*?)/([0-9]+)/(?:\\#c1)?$";
 		REGEX_LINK_EPISODE	  = "^/serialy/(.*?)/(.*?)/(\\d+)/$";
 		REGEX_URL_SERIAL	  = "^https?://(?:www\\.)?filmy-serialy-online\\.tv/serialy/(.*?)/$";
@@ -468,19 +438,52 @@ public final class FASO {
 	}
 	
 	public static final VideoSources getVideoSources(String url) {
-		return SERVERS.getVideoSources(Utils.getDocument(videoFrameURL(url)));
+		return VideoSources.forURL(videoFrameURL(url), SERVERS_PROVIDER);
 	}
 	
-	@SuppressWarnings("unchecked")
-	public static final <T extends Server> T getServer(String name, Object... args) {
-		return (T) SERVERS.instance(name, args);
+	public static final Server getServer(String name, Object... args) {
+		return SERVERS_PROVIDER.instance(name, args);
 	}
 	
-	@SuppressWarnings("unchecked")
-	public static final <E extends IEventType, T extends Downloader<E>> T getDownloader(
-			String name, Object... args) {
-		return (T) DOWNLOADERS.instance(name, args);
+	public static final Servers getServers() {
+		String[] names 	 = SERVERS_PROVIDER.names();
+		Server[] servers = new Server[names.length];
+		for(int i = 0, l = names.length; i < l; ++i)
+			servers[i] = SERVERS_PROVIDER.instance(names[i]);
+		return new Servers(servers);
 	}
+	
+	public static final Downloader<?> getDownloader(String name, Object... args) {
+		return DOWNLOADERS_PROVIDER.instance(name, args);
+	}
+	
+	public static final Downloaders getDownloaders() {
+		String[] 		names 	 	= DOWNLOADERS_PROVIDER.names();
+		Downloader<?>[] downloaders = new Downloader[names.length];
+		for(int i = 0, l = names.length; i < l; ++i)
+			downloaders[i] = DOWNLOADERS_PROVIDER.instance(names[i]);
+		return new Downloaders(downloaders);
+	}
+	
+	static ServersProvider SERVERS_PROVIDER = new DefaultServersProvider();
+	public static void setServersProvider(ServersProvider provider) {
+		if(provider == null) {
+			throw new IllegalArgumentException(
+				"Servers provider cannot be null!");
+		}
+		SERVERS_PROVIDER = provider;
+	}
+	public static ServersProvider getServersProvider() { return SERVERS_PROVIDER; }
+	
+	static DownloadersProvider DOWNLOADERS_PROVIDER = new DefaultDownloadersProvider();
+	public static void setDownloadersProvider(DownloadersProvider provider) {
+		if(provider == null) {
+			throw new IllegalArgumentException(
+				"Downloaders provider cannot be null!");
+		}
+		DOWNLOADERS_PROVIDER = provider;
+	}
+	public static DownloadersProvider getDownloadersProvider() { return DOWNLOADERS_PROVIDER; }
 	
 	static SearchEngine SEARCH_ENGINE = new DefaultSearchEngine();
 	public static void setSearchEngine(SearchEngine engine) {

@@ -6,9 +6,9 @@ import sune.etc.faso.event.EventRegistry;
 import sune.etc.faso.util.UserAgent;
 import sune.etc.faso.video.VideoFormat;
 import sune.etc.faso.video.VideoSource;
-import sune.util.jd.mp4.MP4Downloader;
+import sune.util.jd.flv.FLVDownloader;
 
-// Wrapper for MP4Downloader class since FLVDownloader does not exist
+// Wrapper for FLVDownloader class
 public class DownloaderFLV implements Downloader<DownloadEventFLV> {
 	
 	private static final VideoFormat[] SUPPORTED_FORMATS
@@ -19,14 +19,14 @@ public class DownloaderFLV implements Downloader<DownloadEventFLV> {
 		= new EventRegistry<>();
 	
 	// Downloader instance
-	private MP4Downloader downloader;
+	private FLVDownloader downloader;
 	
 	@Override
 	public void download(VideoSource source, DownloadOptions options) {
 		// If the current file is not yet downloaded, forbid continuing
 		if(downloader != null) return;
 		// Create a new instance of downloader
-		downloader = new MP4Downloader(
+		downloader = new FLVDownloader(
 			source.getURL(), options.getOutput(),
 			options.getUserAgent() == null ?
 				source.getUserAgent() == null ?
