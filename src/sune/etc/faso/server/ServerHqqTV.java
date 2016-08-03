@@ -15,6 +15,7 @@ import sune.etc.faso.util.JavaScript;
 import sune.etc.faso.util.UserAgent;
 import sune.etc.faso.util.Utils;
 import sune.etc.faso.util.Utils.RequestResult;
+import sune.etc.faso.util.Utils.Selector;
 import sune.etc.faso.video.VideoFormat;
 import sune.etc.faso.video.VideoQuality;
 import sune.etc.faso.video.VideoSource;
@@ -64,30 +65,18 @@ public class ServerHqqTV implements Server {
 	@Override
 	public final VideoSource[] getVideoSources(Document document) {
 		List<VideoSource> sources = new ArrayList<>();
-		List<String> list 		  = new ArrayList<>();
-		// Test iframes with the correct source url
-		Elements iframes = document.select("iframe[src]");
-		if(iframes.size() > 0) {
-			Pattern pattern = Pattern.compile(REGEX_IFRAME_URL);
-			for(Element iframe : iframes) {
-				String src = iframe.attr("src");
-				Matcher matcher = pattern.matcher(src);
-				if(matcher.matches()) {
-					list.add(matcher.group(1));
-				}
-			}
-		}
-		// Test forms with the correct action url
-		Elements forms = document.select("form[action]");
-		if(forms.size() > 0) {
-			Pattern pattern = Pattern.compile(REGEX_FORM_URL);
-			for(Element form : forms) {
-				String action = form.attr("action");
-				if(pattern.matcher(action).matches()) {
-					list.add(form.select("input[name=vid]").first().val());
-				}
-			}
-		}
+		List<String> 	  list 	  = Utils.search(document,
+			((element, matcher, value) -> {
+				String name = element.tagName().toLowerCase();
+				if(name.equals("iframe") || name.equals("a"))
+					return matcher.group(1);
+				if(name.equals("form"))
+					return element.select("input[name=vid]").first().val();
+				return null;
+			}),
+			new Selector("iframe[src]",  "src",    Pattern.compile(REGEX_IFRAME_URL)),
+			new Selector("a[href]",		 "href",   Pattern.compile(REGEX_IFRAME_URL)),
+			new Selector("form[action]", "action", Pattern.compile(REGEX_FORM_URL)));
 		// Test scripts with decoded (base64) content
 		String parsed;
 		if((parsed = Utils.deobfuscateJS(Utils.base64Data(document, "script", "src"))) != null) {

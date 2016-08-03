@@ -3,16 +3,15 @@ package sune.etc.faso.server;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import sune.etc.faso.subtitles.Subtitles;
 import sune.etc.faso.util.JavaScript;
 import sune.etc.faso.util.Utils;
+import sune.etc.faso.util.Utils.Selector;
 import sune.etc.faso.video.VideoFormat;
 import sune.etc.faso.video.VideoQuality;
 import sune.etc.faso.video.VideoSource;
@@ -73,19 +72,10 @@ public class ServerAllVid implements Server {
 	@Override
 	public VideoSource[] getVideoSources(Document document) {
 		List<VideoSource> sources = new ArrayList<>();
-		List<String> list 		  = new ArrayList<>();
-		// Test iframes with the correct source url
-		Elements iframes = document.select("iframe[src]");
-		if(iframes.size() > 0) {
-			Pattern pattern = Pattern.compile(REGEX_IFRAME_URL);
-			for(Element iframe : iframes) {
-				String src 		= iframe.attr("src");
-				Matcher matcher = pattern.matcher(src);
-				if(matcher.matches()) {
-					list.add(src);
-				}
-			}
-		}
+		List<String> 	  list 	  = Utils.search(document,
+			((element, matcher, value) -> value),
+			new Selector("iframe[src]", "src",  Pattern.compile(REGEX_IFRAME_URL)),
+			new Selector("a[href]",		"href", Pattern.compile(REGEX_IFRAME_URL)));
 		if(!list.isEmpty()) {
 			for(String url : list) {
 				try {
