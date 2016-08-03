@@ -3,9 +3,15 @@ package sune.etc.faso.video;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.jsoup.nodes.Document;
+
 import sune.etc.faso.Episode;
 import sune.etc.faso.FASO;
+import sune.etc.faso.provider.ServersProvider;
+import sune.etc.faso.server.Server;
+import sune.etc.faso.server.Servers;
 import sune.etc.faso.util.ArrayItems;
+import sune.etc.faso.util.Utils;
 
 public class VideoSources extends ArrayItems<VideoSource> {
 	
@@ -17,12 +23,29 @@ public class VideoSources extends ArrayItems<VideoSource> {
 		super(list.toArray(new VideoSource[list.size()]));
 	}
 	
+	static final VideoSources getSources(Document document, ServersProvider provider) {
+		List<VideoSource> list = new LinkedList<>();
+		for(String name : provider.names()) {
+			Server server 		  = provider.instance(name);
+			VideoSource[] sources = server.getVideoSources(document);
+			if(sources != null && sources.length > 0) {
+				for(VideoSource source : sources)
+					list.add(source);
+			}
+		}
+		return new VideoSources(list);
+	}
+	
 	public static VideoSources forURL(String url) {
-		return FASO.getVideoSources(url);
+		return forURL(url, FASO.getServersProvider());
+	}
+	
+	public static VideoSources forURL(String url, ServersProvider provider) {
+		return getSources(Utils.getDocument(url), provider);
 	}
 	
 	public static VideoSources forEpisode(Episode episode) {
-		return FASO.getVideoSources(episode.getURL());
+		return forURL(episode.getURL());
 	}
 	
 	public VideoSources forFormat(VideoFormat format) {
@@ -45,5 +68,12 @@ public class VideoSources extends ArrayItems<VideoSource> {
 			}
 		}
 		return new VideoSources(list);
+	}
+	
+	public Servers getServers(Document document) {
+		List<Server> list = new LinkedList<>();
+		for(VideoSource source : array)
+			list.add(source.getServer());
+		return new Servers(list);
 	}
 }
