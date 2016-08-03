@@ -1,6 +1,9 @@
 package sune.etc.faso.util;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.InputStream;
@@ -17,11 +20,17 @@ import java.nio.charset.Charset;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.imageio.ImageIO;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -681,5 +690,85 @@ public class Utils {
 				"The given string does not contain any digit!");
 		}
 		return neg ? value : -value;
+	}
+	
+	public static final class Selector {
+		
+		public final String  selector;
+		public final String  attribute;
+		public final Pattern pattern;
+		public Selector(String selector, String attribute, Pattern pattern) {
+			this.selector  = selector;
+			this.attribute = attribute;
+			this.pattern   = pattern;
+		}
+	}
+	
+	@FunctionalInterface
+	public static interface SelectorAction {
+		
+		String found(Element element, Matcher matcher, String value);
+	}
+	
+	public static final List<String> search(Document document, SelectorAction action, Selector... selectors) {
+		List<String> list = new ArrayList<>();
+		for(Selector selector : selectors) {
+			String  sel = selector.selector;
+			String  atr = selector.attribute;
+			Pattern pat = selector.pattern;
+			for(Element el : document.select(sel)) {
+				String  val = el.attr(atr);
+				Matcher mat = pat.matcher(val);
+				String  add;
+				if(mat.matches()
+						&& (add = action.found(el, mat, val)) != null)
+					list.add(add);
+			}
+		}
+		return list;
+	}
+	
+	// Simple script for destroying obfuscated code using http://javascript2img.com/.
+	// This code was tested only on https://openload.co/. It is not ensured that it
+	// works on any other page.
+	// Author: Sune
+	@Deprecated
+	public static final String destroyJS2IMG(String base64Data) {
+		try {
+			byte[] bytes = Utils.rawBase64Decode(base64Data);
+			BufferedImage bimg = ImageIO.read(new ByteArrayInputStream(bytes));
+			bytes = ((DataBufferByte) bimg.getRaster().getDataBuffer()).getData();
+			/* DECODED FUNCTION:
+			for(var i=1; i < bytes.length; i+=4)
+				string += (bytes[i] != 255) ?
+					String.fromCharCode(bytes[i]) :
+					"";
+			string = string.trim();
+			*/
+			StringBuilder sb = new StringBuilder();
+			for(int i = 1, l = bytes.length, c; i < l; i+=3)
+				sb.append((c = bytes[i] & 0xff) != 255 ?
+					(char) c : "");
+			String res = sb.toString().trim();
+			res = Utils.base64Decode(res);
+			res = UtilsJS.decodeURIComponent(res);
+			res = URLDecoder.decode(res, "UTF-8");
+			return res;
+		} catch(Exception ex) {
+		}
+		return null;
+	}
+	
+	public static final String repeat(String string, int count) {
+		StringBuilder sb = new StringBuilder();
+		for(int i = 0; i < count; ++i)
+			sb.append(string);
+		return sb.toString();
+	}
+	
+	public static final String[][] toArray(List<String[]> list) {
+		String[][] array = new String[list.size()][];
+		int i = 0; for(String[] s : list) array[i++] = s;
+		return array;
 	}
 }
