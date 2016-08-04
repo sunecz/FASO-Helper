@@ -19,6 +19,9 @@ FASO-Helper supports getting video links from few servers that can be found on t
 * AllMyVideos (http://allmyvideos.net/)
 * Veoh (http://veoh.com/)
 * VodLocker (http://vodlocker.com/)
+* TheVideo (http://thevideo.me/)
+* VidziTV (http://vidzi.tv/)
+* VShare (http://vshare.eu/)
 
 and also supports downloading of few video formats:
 
