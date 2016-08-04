@@ -23,7 +23,11 @@ public class VideoSources extends ArrayItems<VideoSource> {
 		super(list.toArray(new VideoSource[list.size()]));
 	}
 	
-	static final VideoSources getSources(Document document, ServersProvider provider) {
+	public static final VideoSources forDocument(Document document) {
+		return forDocument(document, FASO.getServersProvider());
+	}
+	
+	public static final VideoSources forDocument(Document document, ServersProvider provider) {
 		List<VideoSource> list = new LinkedList<>();
 		for(String name : provider.names()) {
 			Server server 		  = provider.instance(name);
@@ -41,7 +45,7 @@ public class VideoSources extends ArrayItems<VideoSource> {
 	}
 	
 	public static VideoSources forURL(String url, ServersProvider provider) {
-		return getSources(Utils.getDocument(url), provider);
+		return forDocument(Utils.getDocument(url), provider);
 	}
 	
 	public static VideoSources forEpisode(Episode episode) {

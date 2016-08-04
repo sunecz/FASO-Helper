@@ -441,8 +441,9 @@ public final class FASO {
 		return VideoSources.forURL(videoFrameURL(url), SERVERS_PROVIDER);
 	}
 	
-	public static final Server getServer(String name, Object... args) {
-		return SERVERS_PROVIDER.instance(name, args);
+	@SuppressWarnings("unchecked")
+	public static final <T extends Server> T getServer(String name, Object... args) {
+		return (T) SERVERS_PROVIDER.instance(name, args);
 	}
 	
 	public static final Servers getServers() {
@@ -453,8 +454,9 @@ public final class FASO {
 		return new Servers(servers);
 	}
 	
-	public static final Downloader<?> getDownloader(String name, Object... args) {
-		return DOWNLOADERS_PROVIDER.instance(name, args);
+	@SuppressWarnings("unchecked")
+	public static final <T extends Downloader<?>> T getDownloader(String name, Object... args) {
+		return (T) DOWNLOADERS_PROVIDER.instance(name, args);
 	}
 	
 	public static final Downloaders getDownloaders() {

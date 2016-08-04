@@ -301,7 +301,6 @@ public class Utils {
 			}
 			return new RequestResult(sb.toString(), cookies.toString());
 		} catch(Exception ex) {
-			ex.printStackTrace();
 		}
 		return null;
 	}
@@ -439,6 +438,7 @@ public class Utils {
 	public static final long getFileSizeURL_M3U8(String url, String userAgent,
 			Map<String, String> headers) {
 		String content = quickGETRequest(url, userAgent);
+		if(content == null) return -1; // Hotfix
 		String baseurl = url.substring(0, url.lastIndexOf('/')+1);
 		String[] lines = content.split("\n");
 		long totalSize = 0;
