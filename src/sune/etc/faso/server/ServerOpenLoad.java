@@ -35,7 +35,7 @@ public class ServerOpenLoad implements Server {
 	static {
 		REGEX_EMBED_URL    = "^https?://(?:www\\.)?openload\\.(?:co|io)/embed/(.*?)/(?:\\?.*?)?(?:#.*?)?$";
 		AAENCODE_PREFIX	   = "\uff9f\u03c9\uff9f\uff89";
-		URL_SIGNATURE_NUMS = "https://openload.co/assets/js/obfuscator/numbers.js";
+		URL_SIGNATURE_NUMS = "https://openload.co/assets/js/obfuscator/n.js";
 	}
 	
 	ServerOpenLoad() {
